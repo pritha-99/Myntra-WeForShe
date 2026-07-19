@@ -15,7 +15,7 @@ This PRD redesigns that entire journey as a **one-question-per-screen, audio-fir
 ## 2. Scope
 
 - **Part 1 — Registration:** Phone → Email → GSTIN verification → Name confirmation → Password.
-- **Part 2 — Business & Catalog Setup:** Basic Information → Business Model & Fulfilment → Order Management System → Operational Readiness → Warehouse → Bank → Brand → Category/Sizing → Online Presence → APOB → Declaration & Submit.
+- **Part 2 — Business & Catalog Setup:** Basic Information → Order Management System → Operational Readiness → Warehouse → Bank → Brand → Category/Sizing → Online Presence → APOB → Declaration & Submit.
 - **Out of scope:** Changes to Myntra's actual backend logic, security policy, or approval criteria — this PRD only redesigns the **experience layer** on top of the existing requirements.
 
 ---
@@ -35,7 +35,7 @@ This PRD redesigns that entire journey as a **one-question-per-screen, audio-fir
 ## 4. Full Screen-by-Screen Flow
 
 ### Screen 0 — Language Selection
-Four tiles in native script: **தமிழ் · తెలుగు · हिंदी · English.** Tapping a tile plays an audio sample of the language name in that language. Persists for the whole session.
+3 tiles in native script: **தமிழ் · हिंदी · English.** Tapping a tile plays an audio sample of the language name in that language. Persists for the whole session.
 
 ---
 
@@ -71,7 +71,6 @@ Four tiles in native script: **தமிழ் · తెలుగు · हि�
 - A5: Signature — "Take a photo" or "Draw signature" (finger canvas), no scanner required.
 - A6: TDS/TAN (optional) — Yes/No/"Explain more" tile.
 
-**Section B — Business Model & Fulfilment** *(content grounded in Myntra's Partner documentation — see Section 9)*
 
 - **B2 — Order Management System (OMS)** *(new section, previously missing)*
   - **Question:** "How do you want to manage your stock and orders — using Myntra's own tool, or a paid outside tool?"
