@@ -260,7 +260,7 @@
     "inputType": "tile_group",
     "inputConfig": {
       "options": [
-        { "value": "yes", "en": "Yes, I have a TAN number", "ta": "ஆம், என்னிடம் TAN எண் உள்ளது", "hi": "हाँ, मेरे पास TAN नंबर है" },
+        { "value": "yes", "en": "Yes, I have a TAN number", "ta": "ஆம், என்னிடம் TAN எண் உள்ளது", "hi": "हाँ, मेरे पास TAN नंबर है", "requiresInput": true },
         { "value": "no", "en": "No", "ta": "இல்லை", "hi": "नहीं" },
         { "value": "explain", "en": "Explain more", "ta": "மேலும் விளக்கவும்", "hi": "और समझाएं" }
       ]
@@ -371,7 +371,7 @@
     "inputConfig": {
       "options": [
         { "value": "same", "en": "Same as my registered phone", "ta": "எனது பதிவு செய்யப்பட்ட தொலைபேசி", "hi": "मेरे पंजीकृत फोन जैसा ही" },
-        { "value": "different", "en": "A different number", "ta": "வேறு எண்", "hi": "एक अलग नंबर" }
+        { "value": "different", "en": "A different number", "ta": "வேறு எண்", "hi": "एक अलग नंबर", "requiresInput": true }
       ]
     },
     "validationType": null,
@@ -407,7 +407,7 @@
     "inputConfig": {
       "options": [
         { "value": "same", "en": "Same as my name", "ta": "எனது பெயர் போல்", "hi": "मेरे नाम के समान" },
-        { "value": "different", "en": "A different name", "ta": "வேறு பெயர்", "hi": "एक अलग नाम" }
+        { "value": "different", "en": "A different name", "ta": "வேறு பெயர்", "hi": "एक अलग नाम", "requiresInput": true }
       ]
     },
     "validationType": null,
@@ -481,9 +481,9 @@
   },
   {
     "id": "brand_name",
-    "section": "Part 2E — Additional Questions",
+    "section": "Part 2E — Brand Details",
     "order": 28,
-    "sidebarLabel": { "en": "Additional Questions", "ta": "கூடுதல் கேள்விகள்", "hi": "अतिरिक्त प्रश्न" },
+    "sidebarLabel": { "en": "Brand Details", "ta": "பிராண்ட் விவரங்கள்", "hi": "ब्रांड विवरण" },
     "questionText": {
       "en": "What is your brand name?",
       "ta": "உங்கள் பிராண்ட் பெயர் என்ன?",
@@ -608,56 +608,39 @@
       "ta": "நீங்கள் எந்த வகையான தயாரிப்பை பட்டியலிட விரும்புகிறீர்கள்?",
       "hi": "आप किस प्रकार का उत्पाद सूचीबद्ध करना चाहते हैं?"
     },
-    "inputType": "tile_group",
+    "inputType": "tile_group_multi",
     "inputConfig": {
       "options": [
-        { "value": "saree", "en": "Saree", "ta": "புடவை", "hi": "साड़ी" },
-        { "value": "kurti", "en": "Kurti", "ta": "குர்தி", "hi": "कुर्ती" },
-        { "value": "lungi", "en": "Lungi / Dhoti", "ta": "லுங்கி / தோத்தி", "hi": "लुंगी / धोती" },
-        { "value": "home_textiles", "en": "Home Textiles", "ta": "வீட்டு துணிகள்", "hi": "होम टेक्सटाइल" },
-        { "value": "none", "en": "Other", "ta": "மற்றவை", "hi": "अन्य" }
+        { "value": "clothing", "en": "Clothing", "ta": "ஆடை", "hi": "कपड़े" },
+        { "value": "accessories", "en": "Accessories", "ta": "பாகங்கள்", "hi": "सामान" },
+        { "value": "beauty", "en": "Beauty", "ta": "அழகு", "hi": "सुंदरता" },
+        { "value": "home_furnishings", "en": "Home Furnishings and accessories", "ta": "வீட்டு அலங்காரம் மற்றும் பாகங்கள்", "hi": "होम फर्निशिंग और सामान" },
+        { "value": "footwear", "en": "Footwear", "ta": "காலணி", "hi": "जूते" }
       ]
     },
     "validationType": "non_empty",
     "explainDocKey": null,
     "required": true
   },
-  {
-    "id": "sizing_gender",
-    "section": "Part 2F — Category & Sizing",
-    "order": 36,
-    "questionText": {
-      "en": "Who is this product for?",
-      "ta": "இந்த தயாரிப்பு யாருக்கு?",
-      "hi": "यह उत्पाद किसके लिए है?"
-    },
-    "inputType": "tile_group",
-    "inputConfig": {
-      "options": [
-        { "value": "women", "en": "Women", "ta": "பெண்கள்", "hi": "महिलाएँ" },
-        { "value": "men", "en": "Men", "ta": "ஆண்கள்", "hi": "पुरुष" },
-        { "value": "kids", "en": "Kids", "ta": "குழந்தைகள்", "hi": "बच्चे" },
-        { "value": "none", "en": "Unisex / Mixed", "ta": "யாரும்", "hi": "यूनिसेक्स / मिश्रित" }
-      ]
-    },
-    "validationType": null,
-    "explainDocKey": null,
-    "required": true
-  },
+
   {
     "id": "sells_elsewhere",
     "section": "Part 2G — Online Presence",
     "order": 37,
     "questionText": {
-      "en": "Do you already sell this elsewhere — your own shop, WhatsApp, another app?",
-      "ta": "இதை வேறு எங்காவது விற்கிறீர்களா — சொந்த கடை, WhatsApp, வேறொரு app?",
-      "hi": "क्या आप इसे कहीं और बेचते हैं — अपनी दुकान, WhatsApp, या किसी अन्य ऐप पर?"
+      "en": "Do you already sell your products elsewhere?",
+      "ta": "உங்கள் தயாரிப்புகளை வேறு எங்காவது விற்கிறீர்களா?",
+      "hi": "क्या आप पहले से ही अपने उत्पाद कहीं और बेचते हैं?"
     },
-    "inputType": "tile_group",
+    "inputType": "tile_group_multi",
     "inputConfig": {
       "options": [
-        { "value": "yes", "en": "Yes", "ta": "ஆம்", "hi": "हाँ" },
-        { "value": "no", "en": "No, only on Myntra", "ta": "இல்லை, Myntra மட்டும்", "hi": "नहीं, केवल Myntra पर" }
+        { "value": "whatsapp", "en": "Whatsapp", "ta": "Whatsapp", "hi": "Whatsapp" },
+        { "value": "tata_cliq", "en": "Tata CLiq", "ta": "Tata CLiq", "hi": "Tata CLiq" },
+        { "value": "amazon", "en": "Amazon", "ta": "Amazon", "hi": "Amazon" },
+        { "value": "meesho", "en": "Meesho", "ta": "Meesho", "hi": "Meesho" },
+        { "value": "flipkart", "en": "Flipkart", "ta": "Flipkart", "hi": "Flipkart" },
+        { "value": "own_shop", "en": "Own Shop", "ta": "சொந்த கடை", "hi": "अपनी दुकान", "requiresInput": true }
       ]
     },
     "validationType": null,
@@ -709,9 +692,9 @@
     "order": 40,
     "sidebarLabel": { "en": "Terms & Conditions", "ta": "விதிமுறைகள்", "hi": "नियम एवं शर्तें" },
     "questionText": {
-      "en": "Read / Listen to our Terms & Conditions. The 'I Agree' button will activate after you hear them.",
-      "ta": "எங்கள் விதிமுறைகளை படிக்கவும் / கேளுங்கள். கேட்ட பிறகு 'ஒப்புக்கொள்கிறேன்' பொத்தான் இயக்கமாகும்.",
-      "hi": "हमारी शर्तें पढ़ें / सुनें। उन्हें सुनने के बाद 'मैं सहमत हूँ' बटन सक्रिय हो जाएगा।"
+      "en": "Read / Listen to our Terms & Conditions.",
+      "ta": "எங்கள் விதிமுறைகளை படிக்கவும் / கேளுங்கள்.",
+      "hi": "हमारी शर्तें पढ़ें / सुनें।"
     },
     "inputType": "declaration_agree",
     "inputConfig": {},

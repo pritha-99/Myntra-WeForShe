@@ -67,13 +67,14 @@ export default function QuestionScreen({ entry, currentIndex, total, language, t
     ? (entry.questionText[language] || entry.questionText.en || '')
     : '';
 
-  async function handleSubmit() {
+  async function handleSubmit(overrideValue) {
     if (submitting) return;
     setSubmitting(true);
     setErrorMsg(null);
 
     try {
-      const rawValue = Array.isArray(inputValue) ? inputValue.join(',') : inputValue;
+      const actualInput = typeof overrideValue === 'string' ? overrideValue : inputValue;
+      const rawValue = Array.isArray(actualInput) ? actualInput.join(',') : actualInput;
 
       if (entry.validationType) {
         // Pass language so backend returns error in user's language
@@ -89,7 +90,7 @@ export default function QuestionScreen({ entry, currentIndex, total, language, t
           return;
         }
       } else if (entry.required !== false) {
-        const isEmpty = Array.isArray(inputValue) ? inputValue.length === 0 : !rawValue || !rawValue.trim();
+        const isEmpty = Array.isArray(actualInput) ? actualInput.length === 0 : !rawValue || !rawValue.trim();
         if (isEmpty) {
           const count = incrementFailedAttempts(entry.id);
           setFailCount(count);
@@ -101,7 +102,7 @@ export default function QuestionScreen({ entry, currentIndex, total, language, t
         }
       }
 
-      setAnswer(entry.id, inputValue);
+      setAnswer(entry.id, actualInput);
       resetFailedAttempts(entry.id);
       onNext();
     } catch (err) {

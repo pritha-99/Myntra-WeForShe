@@ -25,6 +25,7 @@ export default function App() {
   const [index, setIndex] = useState(() => getState().currentIndex || 0);
   const [done, setDone] = useState(false);
   const [declarationText, setDeclarationText] = useState('');
+  const [showWarnings, setShowWarnings] = useState(false);
   const [lightMode, setLightMode] = useState(() => {
     return localStorage.getItem('bharat_theme') === 'light';
   });
@@ -57,7 +58,30 @@ export default function App() {
   }
 
   function handleNext() {
-    const nextIndex = index + 1;
+    const { answers } = getState();
+    let nextIndex = -1;
+    for (let i = index + 1; i < QUESTIONS.length - 1; i++) {
+      if (QUESTIONS[i].required !== false && !answers[QUESTIONS[i].id]) {
+        nextIndex = i;
+        break;
+      }
+    }
+    if (nextIndex === -1) {
+      nextIndex = QUESTIONS.length - 1;
+    }
+    if (index === QUESTIONS.length - 1) {
+      setShowWarnings(true);
+      const unanswered = QUESTIONS.find(q => q.required !== false && q.id !== 'declaration' && !answers[q.id]);
+      if (unanswered) {
+        const uIdx = QUESTIONS.indexOf(unanswered);
+        setIndex(uIdx);
+        setCurrentIndex(uIdx);
+        return;
+      } else {
+        setDone(true);
+        return;
+      }
+    }
     if (nextIndex >= QUESTIONS.length) {
       setDone(true);
     } else {
@@ -199,6 +223,21 @@ export default function App() {
             const isDone = si < currentSidebarIdx;
             // find real question index
             const qIdx = QUESTIONS.findIndex(x => x.id === q.id);
+            const sectionStartIndex = qIdx;
+            const nextSectionStartIndex = si + 1 < SIDEBAR_ENTRIES.length 
+               ? QUESTIONS.findIndex(x => x.id === SIDEBAR_ENTRIES[si+1].id)
+               : QUESTIONS.length;
+            
+            let hasUnanswered = false;
+            const answers = getState().answers;
+            for (let i = sectionStartIndex; i < nextSectionStartIndex; i++) {
+               if (QUESTIONS[i].required !== false && QUESTIONS[i].id !== 'declaration' && !answers[QUESTIONS[i].id]) {
+                  hasUnanswered = true;
+                  break;
+               }
+            }
+            const showWarning = showWarnings && hasUnanswered;
+
             return (
               <div
                 key={q.id}
@@ -207,17 +246,21 @@ export default function App() {
                   padding: '11px 12px', borderRadius: 10,
                   background: isCurrent ? 'rgba(255,63,108,0.12)' : 'transparent',
                   border: `1.5px solid ${isCurrent ? 'var(--myntra-pink)' : 'transparent'}`,
-                  cursor: isDone ? 'pointer' : 'default',
+                  cursor: 'pointer',
                   transition: 'all 0.18s',
                 }}
-                onClick={() => isDone && qIdx >= 0 ? (setIndex(qIdx), setCurrentIndex(qIdx)) : null}
+                onClick={() => qIdx >= 0 ? (setIndex(qIdx), setCurrentIndex(qIdx)) : null}
               >
                 <div style={{
                   width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
                   background: isDone ? 'var(--myntra-success)' : isCurrent ? 'var(--myntra-pink)' : 'var(--myntra-border)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '0.72rem', fontWeight: 700, color: isDone || isCurrent ? '#fff' : 'var(--myntra-muted)',
+                  position: 'relative'
                 }}>
+                  {showWarning && (
+                    <span style={{ position: 'absolute', top: -5, right: -5, background: 'red', color: 'white', borderRadius: '50%', width: 14, height: 14, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>!</span>
+                  )}
                   {isDone ? '✓' : si + 1}
                 </div>
                 <span style={{

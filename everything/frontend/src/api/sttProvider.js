@@ -26,7 +26,7 @@ let _active = null;
  * Starts microphone capture. Returns a Promise that resolves with the
  * transcribed string (empty string if stopped before any speech was detected).
  */
-export function transcribe(language = 'en') {
+export function transcribe(language = 'en', onUpdate) {
   return new Promise((resolve, reject) => {
     if (!SpeechRecognition) {
       reject(new Error('SpeechRecognition is not supported in this browser.'));
@@ -43,11 +43,12 @@ export function transcribe(language = 'en') {
     _active = recognition;
 
     recognition.lang = LANG_MAP[language] || 'en-IN';
-    recognition.interimResults = false;
+    recognition.interimResults = true;
     recognition.maxAlternatives = 1;
-    recognition.continuous = false;
+    recognition.continuous = true;
 
     let settled = false;
+    let finalTranscript = '';
 
     function settle(fn) {
       if (!settled) {
@@ -58,14 +59,23 @@ export function transcribe(language = 'en') {
     }
 
     recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      settle(() => resolve(transcript));
+      let interim = '';
+      let newFinal = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          newFinal += event.results[i][0].transcript + ' ';
+        } else {
+          interim += event.results[i][0].transcript;
+        }
+      }
+      finalTranscript += newFinal;
+      if (onUpdate) onUpdate((finalTranscript + interim).trim());
     };
 
     recognition.onerror = (event) => {
       // "aborted" means stop() was called — resolve with empty, not reject
       if (event.error === 'aborted' || event.error === 'no-speech') {
-        settle(() => resolve(''));
+        settle(() => resolve(finalTranscript.trim()));
       } else {
         settle(() => reject(new Error(event.error || 'Speech recognition error')));
       }
@@ -73,7 +83,7 @@ export function transcribe(language = 'en') {
 
     recognition.onend = () => {
       // Fires after onresult or onerror — settle with empty if nothing was resolved yet
-      settle(() => resolve(''));
+      settle(() => resolve(finalTranscript.trim()));
     };
 
     recognition.start();

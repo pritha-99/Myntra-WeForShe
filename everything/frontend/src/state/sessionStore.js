@@ -15,7 +15,7 @@ const DEFAULT_STATE = {
 
 function _load() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = sessionStorage.getItem(STORAGE_KEY);
     return raw ? { ...DEFAULT_STATE, ...JSON.parse(raw) } : { ...DEFAULT_STATE };
   } catch {
     return { ...DEFAULT_STATE };
@@ -24,7 +24,7 @@ function _load() {
 
 function _save(state) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
     // Storage quota exceeded — silently fail
   }

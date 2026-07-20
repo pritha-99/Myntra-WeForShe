@@ -22,7 +22,8 @@ async function simulateContentCheck(verifyType, dataUrl) {
   const base64 = dataUrl.split(',')[1] || '';
   const approxBytes = Math.ceil((base64.length * 3) / 4);
   if (approxBytes < 2000) {
-    return { ok: false, reason: 'The image appears to be blank or too small. Please retake the photo.' };
+    const docName = (verifyType || 'document').replace('_', ' ');
+    return { ok: false, reason: `The uploaded image does not appear to be a valid ${docName}. Please ensure it is clear and correctly photographed.` };
   }
   return { ok: true };
 }

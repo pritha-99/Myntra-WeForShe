@@ -6,10 +6,16 @@
 export default function TileGroup({ entry, value, onChange, onSubmit, language, t }) {
   const options = (entry.inputConfig && entry.inputConfig.options) || [];
 
+  const inputOption = options.find(o => o.requiresInput);
+  const inputVal = inputOption ? (inputOption.value || inputOption.en || inputOption) : null;
+
+  const isCustom = inputOption && value && !options.some(o => (o.value || o.en || o) === value);
+  const selectedOptionVal = isCustom ? inputVal : value;
+
   function handleTap(val) {
-    if (value === val) {
-      // Second tap on already-selected option → confirm and advance
-      onSubmit();
+    if (selectedOptionVal === val && val !== inputVal) {
+      // Second tap on already-selected non-input option → confirm and advance
+      onSubmit(val);
     } else {
       // First tap → just select
       onChange(val);
@@ -30,29 +36,31 @@ export default function TileGroup({ entry, value, onChange, onSubmit, language, 
         {options.map((opt) => {
           const label = typeof opt === 'object' ? (opt[language] || opt.en || opt.value || opt) : opt;
           const val   = typeof opt === 'object' ? (opt.value || opt.en || opt) : opt;
-          const selected = value === val;
+          const isSelected = selectedOptionVal === val;
+          const showInput = isSelected && val === inputVal;
+
           return (
+            <div key={val}>
             <button
-              key={val}
-              className={`tile-btn${selected ? ' selected' : ''}`}
+              className={`tile-btn${isSelected ? ' selected' : ''}`}
               onClick={() => handleTap(val)}
               style={{
                 justifyContent: 'flex-start', gap: 12, paddingLeft: 20, fontSize: '1rem',
-                boxShadow: selected ? '0 0 0 3px rgba(255,63,108,0.25)' : 'none',
+                boxShadow: isSelected ? '0 0 0 3px rgba(255,63,108,0.25)' : 'none',
                 transition: 'all 0.18s ease',
               }}
             >
               <span style={{
                 width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                border: `2px solid ${selected ? 'var(--myntra-pink)' : 'var(--myntra-border)'}`,
-                background: selected ? 'var(--myntra-pink)' : 'transparent',
+                border: `2px solid ${isSelected ? 'var(--myntra-pink)' : 'var(--myntra-border)'}`,
+                background: isSelected ? 'var(--myntra-pink)' : 'transparent',
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'all 0.18s',
               }}>
-                {selected && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff' }} />}
+                {isSelected && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff' }} />}
               </span>
               {label}
-              {selected && (
+              {isSelected && val !== inputVal && (
                 <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--myntra-pink)', fontWeight: 600 }}>
                   {language === 'ta' ? '↵ மீண்டும் தட்டவும்' :
                    language === 'hi' ? '↵ फिर टैप करें' :
@@ -60,6 +68,24 @@ export default function TileGroup({ entry, value, onChange, onSubmit, language, 
                 </span>
               )}
             </button>
+            {showInput && (
+              <input
+                type="text"
+                value={isCustom ? value : ''}
+                onChange={(e) => {
+                  const text = e.target.value;
+                  onChange(text || val);
+                }}
+                placeholder="Please specify..."
+                style={{
+                  marginTop: 8, padding: '12px 16px', borderRadius: 8,
+                  border: '1.5px solid var(--myntra-border)', width: '100%',
+                  background: 'transparent', color: 'var(--myntra-text)',
+                  fontSize: '1rem', outline: 'none'
+                }}
+              />
+            )}
+            </div>
           );
         })}
       </div>

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { transcribe, isSupported } from '../../api/sttProvider';
+import { transcribe, isSupported, stop } from '../../api/sttProvider';
 
 /**
  * VoiceInput — single unified text box with inline mic button.
@@ -11,7 +11,11 @@ export default function VoiceInput({ entry, value = '', onChange, onSubmit, lang
   const [error, setError] = useState(null);
   const textareaRef = useRef(null);
 
-  async function startListening() {
+  async function toggleListening() {
+    if (listening) {
+      stop();
+      return;
+    }
     if (!isSupported()) {
       setError(
         language === 'ta' ? 'உங்கள் உலாவியில் குரல் ஆதரவு இல்லை.' :
@@ -23,8 +27,11 @@ export default function VoiceInput({ entry, value = '', onChange, onSubmit, lang
     setListening(true);
     setError(null);
     try {
-      const transcript = await transcribe(language);
-      onChange(transcript);
+      const baseText = value ? value + ' ' : '';
+      const transcript = await transcribe(language, (text) => {
+        onChange((baseText + text).trim());
+      });
+      onChange((baseText + transcript).trim());
     } catch (e) {
       setError(
         language === 'ta' ? 'குரல் பதிவு தோல்வி. மீண்டும் முயற்சிக்கவும்.' :
@@ -73,15 +80,14 @@ export default function VoiceInput({ entry, value = '', onChange, onSubmit, lang
 
         {/* Mic icon — top-right corner of textarea */}
         <button
-          onClick={startListening}
-          disabled={listening}
+          onClick={toggleListening}
           title={listening ? t('listening') : t('tapToSpeak')}
           style={{
             position: 'absolute', top: 10, right: 10,
             width: 38, height: 38, borderRadius: '50%',
             background: listening ? 'rgba(255,63,108,0.25)' : 'var(--myntra-card)',
             border: `2px solid ${listening ? 'var(--myntra-pink)' : 'var(--myntra-border)'}`,
-            cursor: listening ? 'not-allowed' : 'pointer',
+            cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '1.1rem', transition: 'all 0.18s',
             boxShadow: listening ? '0 0 0 3px rgba(255,63,108,0.2)' : 'none',
