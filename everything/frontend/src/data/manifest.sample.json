@@ -3,6 +3,7 @@
     "id": "phone",
     "section": "Part 1 — Registration",
     "order": 1,
+    "sidebarLabel": { "en": "Phone Number", "ta": "தொலைபேசி எண்", "hi": "फोन नंबर" },
     "questionText": {
       "en": "What is your mobile phone number?",
       "ta": "உங்கள் மொபைல் தொலைபேசி எண் என்ன?",
@@ -33,6 +34,7 @@
     "id": "email",
     "section": "Part 1 — Registration",
     "order": 3,
+    "sidebarLabel": { "en": "Email Address", "ta": "மின்னஞ்சல்", "hi": "ईमेल पता" },
     "questionText": {
       "en": "What is your business email address?",
       "ta": "உங்கள் வணிக மின்னஞ்சல் முகவரி என்ன?",
@@ -63,6 +65,7 @@
     "id": "gstin",
     "section": "Part 1 — Registration",
     "order": 5,
+    "sidebarLabel": { "en": "GST Details", "ta": "GST விவரங்கள்", "hi": "GST विवरण" },
     "questionText": {
       "en": "What is your GST number?",
       "ta": "உங்கள் ஜிஎஸ்டி எண் என்ன?",
@@ -142,11 +145,8 @@
     },
     "inputType": "confirm_readonly",
     "inputConfig": {
-      "fields": [
-        { "key": "phone", "label": { "en": "Phone", "ta": "தொலைபேசி", "hi": "फोन" }, "value": "Registered" },
-        { "key": "email", "label": { "en": "Email", "ta": "மின்னஞ்சல்", "hi": "ईमेल" }, "value": "Verified" },
-        { "key": "gstin", "label": { "en": "GSTIN", "ta": "GSTIN", "hi": "GSTIN" }, "value": "Verified" }
-      ]
+      "useSessionAnswers": true,
+      "sessionFields": ["phone", "email", "gstin"]
     },
     "validationType": null,
     "explainDocKey": null,
@@ -156,6 +156,7 @@
     "id": "primary_contact_is_owner",
     "section": "Part 2A — Basic Information",
     "order": 10,
+    "sidebarLabel": { "en": "Owner Details", "ta": "உரிமையாளர் விவரங்கள்", "hi": "मालिक विवरण" },
     "questionText": {
       "en": "Is the primary contact for your business you, or someone else?",
       "ta": "உங்கள் வணிகத்தின் முதன்மை தொடர்பாளர் நீங்களா, இல்லை வேறு யாரோ?",
@@ -165,7 +166,8 @@
     "inputConfig": {
       "options": [
         { "value": "me", "en": "Me", "ta": "நான்", "hi": "मैं" },
-        { "value": "other", "en": "Someone else", "ta": "வேறொருவர்", "hi": "कोई और" }
+        { "value": "other", "en": "Someone else", "ta": "வேறொருவர்", "hi": "कोई और" },
+        { "value": "none", "en": "Prefer not to say", "ta": "சொல்ல விரும்பவில்லை", "hi": "नहीं बताना चाहता" }
       ]
     },
     "validationType": null,
@@ -241,7 +243,7 @@
       "hi": "कागज पर अपने हस्ताक्षर की तस्वीर लें।"
     },
     "inputType": "photo_capture",
-    "inputConfig": {},
+    "inputConfig": { "verify": "signature" },
     "validationType": "non_empty",
     "explainDocKey": null,
     "required": true
@@ -269,18 +271,20 @@
   },
   {
     "id": "b2_oms_choice",
-    "section": "Part 2B — Order Management",
+    "section": "Part 2B — Business Details",
     "order": 16,
+    "sidebarLabel": { "en": "Business Details", "ta": "வணிக விவரங்கள்", "hi": "व्यवसाय विवरण" },
     "questionText": {
       "en": "How do you want to manage your stock and orders — using Myntra's own tool, or a paid outside tool?",
-      "ta": "உங்கள் இருப்பு மற்றும் ஆர்டர்களை Myntra-வின் கருவியைப் பயன்படுத்தி நிர்வகிக்க விரும்புகிறீர்களா, அல்லது வெளியிலிருந்து ஒரு கருவி?",
+      "ta": "உங்கள் இருப்பு மற்றும் ஆர்டர்களை Myntra-வின் கருவி பயன்படுத்தி நிர்வகிக்க விரும்புகிறீர்களா, அல்லது வெளியிலிருந்து ஒரு கருவி?",
       "hi": "आप अपने स्टॉक और ऑर्डर को Myntra के अपने टूल से प्रबंधित करना चाहते हैं, या अपने किसी बाहरी टूल से?"
     },
     "inputType": "tile_group",
     "inputConfig": {
       "options": [
         { "value": "myntra", "en": "Use Myntra's free tool (M-Direct)", "ta": "Myntra-வின் இலவச கருவி (M-Direct)", "hi": "Myntra का मुफ्त टूल उपयोग करें (M-Direct)" },
-        { "value": "third_party", "en": "I already use my own software", "ta": "என்னுடைய சொந்த மென்பொருள் உள்ளது", "hi": "मैं पहले से ही अपने सॉफ़्टवेयर का उपयोग करता हूँ" }
+        { "value": "third_party", "en": "I already use my own software", "ta": "என்னுடைய சொந்த மென்பொருள் உள்ளது", "hi": "मैं पहले से ही अपने सॉफ़्टवेयर का उपयोग करता हूँ" },
+        { "value": "none", "en": "None / Not sure yet", "ta": "ஏதும் இல்லை / இன்னும் தெரியவில்லை", "hi": "कोई नहीं / अभी निश्चित नहीं" }
       ]
     },
     "validationType": null,
@@ -289,7 +293,7 @@
   },
   {
     "id": "b3_operational_readiness",
-    "section": "Part 2B — Order Management",
+    "section": "Part 2B — Business Details",
     "order": 17,
     "questionText": {
       "en": "Do you already have these ready?",
@@ -301,7 +305,8 @@
       "options": [
         { "value": "printer", "en": "📇 A thermal printer (for labels)", "ta": "📇 தெர்மல் பிரிண்டர் (லேபிள்களுக்கு)", "hi": "📇 एक थर्मल प्रिंटर (लेबल के लिए)" },
         { "value": "labels", "en": "🏷️ Barcode labels (4×6 inch)", "ta": "🏷️ பார்கோடு லேபிள்கள் (4×6 இஞ்ச்)", "hi": "🏷️ बारकोड लेबल (4×6 इंच)" },
-        { "value": "scanner", "en": "📡 A barcode scanner", "ta": "📡 பார்கோடு ஸ்கேனர்", "hi": "📡 एक बारकोड स्कैनर" }
+        { "value": "scanner", "en": "📡 A barcode scanner", "ta": "📡 பார்கோடு ஸ்கேனர்", "hi": "📡 एक बारकोड स्कैनर" },
+        { "value": "none", "en": "❌ None of these yet", "ta": "❌ இவை எதுவும் இல்லை", "hi": "❌ अभी इनमें से कोई नहीं" }
       ]
     },
     "validationType": null,
@@ -392,6 +397,7 @@
     "id": "bank_account_holder",
     "section": "Part 2D — Bank Details",
     "order": 23,
+    "sidebarLabel": { "en": "Bank Details", "ta": "வங்கி விவரங்கள்", "hi": "बैंक विवरण" },
     "questionText": {
       "en": "What name is on your bank account?",
       "ta": "உங்கள் வங்கி கணக்கில் என்ன பெயர் உள்ளது?",
@@ -468,15 +474,16 @@
       "hi": "कृपया रद्द किए गए चेक, या पासबुक के पहले पेज की तस्वीर लें।"
     },
     "inputType": "photo_capture",
-    "inputConfig": {},
+    "inputConfig": { "verify": "bank_document" },
     "validationType": "non_empty",
     "explainDocKey": null,
     "required": true
   },
   {
     "id": "brand_name",
-    "section": "Part 2E — Brand Details",
+    "section": "Part 2E — Additional Questions",
     "order": 28,
+    "sidebarLabel": { "en": "Additional Questions", "ta": "கூடுதல் கேள்விகள்", "hi": "अतिरिक्त प्रश्न" },
     "questionText": {
       "en": "What is your brand name?",
       "ta": "உங்கள் பிராண்ட் பெயர் என்ன?",
@@ -490,7 +497,7 @@
   },
   {
     "id": "nature_of_business",
-    "section": "Part 2E — Brand Details",
+    "section": "Part 2E — Additional Questions",
     "order": 29,
     "questionText": {
       "en": "Do you make the product, only sell it, or both?",
@@ -502,7 +509,8 @@
       "options": [
         { "value": "make", "en": "I make it", "ta": "நான் தயாரிக்கிறேன்", "hi": "मैं इसे बनाता हूँ" },
         { "value": "sell", "en": "I only sell it", "ta": "நான் மட்டுமே விற்கிறேன்", "hi": "मैं इसे केवल बेचता हूँ" },
-        { "value": "both", "en": "Both", "ta": "இரண்டும்", "hi": "दोनों" }
+        { "value": "both", "en": "Both", "ta": "இரண்டும்", "hi": "दोनों" },
+        { "value": "none", "en": "Other", "ta": "மற்றவை", "hi": "अन्य" }
       ]
     },
     "validationType": null,
@@ -511,7 +519,7 @@
   },
   {
     "id": "trademark_proof",
-    "section": "Part 2E — Brand Details",
+    "section": "Part 2E — Additional Questions",
     "order": 30,
     "questionText": {
       "en": "Do you have a Trademark certificate for your brand?",
@@ -519,14 +527,14 @@
       "hi": "क्या आपके ब्रांड का ट्रेडमार्क प्रमाणपत्र है?"
     },
     "inputType": "photo_capture",
-    "inputConfig": {},
+    "inputConfig": { "verify": "trademark_certificate" },
     "validationType": null,
     "explainDocKey": "trademark_proof_explained",
     "required": true
   },
   {
     "id": "brand_mrp",
-    "section": "Part 2E — Brand Details",
+    "section": "Part 2E — Additional Questions",
     "order": 31,
     "questionText": {
       "en": "What is the average MRP of your products? (in ₹)",
@@ -541,7 +549,7 @@
   },
   {
     "id": "brand_selling_price",
-    "section": "Part 2E — Brand Details",
+    "section": "Part 2E — Additional Questions",
     "order": 32,
     "questionText": {
       "en": "What is your average selling price? (in ₹)",
@@ -555,24 +563,9 @@
     "required": true
   },
   {
-    "id": "brand_catalogue_width",
-    "section": "Part 2E — Brand Details",
-    "order": 33,
-    "questionText": {
-      "en": "How many different designs do you plan to list on Myntra?",
-      "ta": "Myntra-வில் எத்தனை வெவ்வேறு வடிவமைப்புகளை பட்டியலிட திட்டமிடுகிறீர்கள்?",
-      "hi": "आप Myntra पर कितने अलग-अलग डिज़ाइन सूचीबद्ध करने की योजना बना रहे हैं?"
-    },
-    "inputType": "numeric_tile",
-    "inputConfig": { "length": 4 },
-    "validationType": null,
-    "explainDocKey": "catalogue_width_explained",
-    "required": true
-  },
-  {
     "id": "brand_usp",
-    "section": "Part 2E — Brand Details",
-    "order": 34,
+    "section": "Part 2E — Additional Questions",
+    "order": 33,
     "questionText": {
       "en": "Tell us what makes your products special.",
       "ta": "உங்கள் தயாரிப்புகளை சிறப்பாக்குவது என்ன என்று சொல்லுங்கள்.",
@@ -586,8 +579,8 @@
   },
   {
     "id": "myntra_for_earth",
-    "section": "Part 2E — Brand Details",
-    "order": 35,
+    "section": "Part 2E — Additional Questions",
+    "order": 34,
     "questionText": {
       "en": "Is your product made in an eco-friendly way? Select all that apply.",
       "ta": "உங்கள் தயாரிப்பு சுற்றுச்சூழல் நட்பான முறையில் தயாரிக்கப்படுகிறதா?",
@@ -609,7 +602,7 @@
   {
     "id": "category_type",
     "section": "Part 2F — Category & Sizing",
-    "order": 36,
+    "order": 35,
     "questionText": {
       "en": "What type of product do you want to list?",
       "ta": "நீங்கள் எந்த வகையான தயாரிப்பை பட்டியலிட விரும்புகிறீர்கள்?",
@@ -622,7 +615,7 @@
         { "value": "kurti", "en": "Kurti", "ta": "குர்தி", "hi": "कुर्ती" },
         { "value": "lungi", "en": "Lungi / Dhoti", "ta": "லுங்கி / தோத்தி", "hi": "लुंगी / धोती" },
         { "value": "home_textiles", "en": "Home Textiles", "ta": "வீட்டு துணிகள்", "hi": "होम टेक्सटाइल" },
-        { "value": "other", "en": "Other", "ta": "மற்றவை", "hi": "अन्य" }
+        { "value": "none", "en": "Other", "ta": "மற்றவை", "hi": "अन्य" }
       ]
     },
     "validationType": "non_empty",
@@ -632,7 +625,7 @@
   {
     "id": "sizing_gender",
     "section": "Part 2F — Category & Sizing",
-    "order": 37,
+    "order": 36,
     "questionText": {
       "en": "Who is this product for?",
       "ta": "இந்த தயாரிப்பு யாருக்கு?",
@@ -644,7 +637,7 @@
         { "value": "women", "en": "Women", "ta": "பெண்கள்", "hi": "महिलाएँ" },
         { "value": "men", "en": "Men", "ta": "ஆண்கள்", "hi": "पुरुष" },
         { "value": "kids", "en": "Kids", "ta": "குழந்தைகள்", "hi": "बच्चे" },
-        { "value": "unisex", "en": "Unisex", "ta": "யாரும்", "hi": "यूनिसेक्स" }
+        { "value": "none", "en": "Unisex / Mixed", "ta": "யாரும்", "hi": "यूनिसेक्स / मिश्रित" }
       ]
     },
     "validationType": null,
@@ -654,7 +647,7 @@
   {
     "id": "sells_elsewhere",
     "section": "Part 2G — Online Presence",
-    "order": 38,
+    "order": 37,
     "questionText": {
       "en": "Do you already sell this elsewhere — your own shop, WhatsApp, another app?",
       "ta": "இதை வேறு எங்காவது விற்கிறீர்களா — சொந்த கடை, WhatsApp, வேறொரு app?",
@@ -674,7 +667,7 @@
   {
     "id": "apob_needed",
     "section": "Part 2H — APOB",
-    "order": 39,
+    "order": 38,
     "questionText": {
       "en": "Do you have another business location you ship from?",
       "ta": "நீங்கள் அனுப்பும் வேறொரு வணிக இடம் உள்ளதா?",
@@ -693,8 +686,9 @@
   },
   {
     "id": "full_readback",
-    "section": "Part 2I — Declaration",
-    "order": 40,
+    "section": "Part 2I — Summary",
+    "order": 39,
+    "sidebarLabel": { "en": "Summary", "ta": "சுருக்கம்", "hi": "सारांश" },
     "questionText": {
       "en": "Here is a summary of your entire application. Tap any section to fix it.",
       "ta": "உங்கள் முழு விண்ணப்பத்தின் சுருக்கம். திருத்த எந்த பிரிவையும் தட்டவும்.",
@@ -702,13 +696,8 @@
     },
     "inputType": "confirm_readonly",
     "inputConfig": {
-      "fields": [
-        { "key": "part1", "label": { "en": "Registration", "ta": "பதிவு", "hi": "पंजीकरण" }, "value": "Complete ✓" },
-        { "key": "part2a", "label": { "en": "Basic Info", "ta": "அடிப்படை தகவல்", "hi": "बुनियादी जानकारी" }, "value": "Complete ✓" },
-        { "key": "part2c", "label": { "en": "Warehouse", "ta": "கிடங்கு", "hi": "गोदाम" }, "value": "Complete ✓" },
-        { "key": "part2d", "label": { "en": "Bank Details", "ta": "வங்கி விவரங்கள்", "hi": "बैंक विवरण" }, "value": "Complete ✓" },
-        { "key": "part2e", "label": { "en": "Brand Details", "ta": "பிராண்ட் விவரங்கள்", "hi": "ब्रांड विवरण" }, "value": "Complete ✓" }
-      ]
+      "useSessionAnswers": true,
+      "sessionFields": ["phone", "email", "gstin", "primary_contact_is_owner", "b2_oms_choice", "bank_account_holder", "bank_account_type", "brand_name", "nature_of_business", "category_type"]
     },
     "validationType": null,
     "explainDocKey": null,
@@ -717,11 +706,12 @@
   {
     "id": "declaration",
     "section": "Part 2I — Declaration",
-    "order": 41,
+    "order": 40,
+    "sidebarLabel": { "en": "Terms & Conditions", "ta": "விதிமுறைகள்", "hi": "नियम एवं शर्तें" },
     "questionText": {
-      "en": "Please listen to our Terms & Conditions. The 'I Agree' button will activate after you hear them.",
-      "ta": "எங்கள் விதிமுறைகளை கேளுங்கள். கேட்ட பிறகு 'ஒப்புக்கொள்கிறேன்' பொத்தான் இயக்கமாகும்.",
-      "hi": "हमारी शर्तें सुनें। उन्हें सुनने के बाद 'मैं सहमत हूँ' बटन सक्रिय हो जाएगा।"
+      "en": "Read / Listen to our Terms & Conditions. The 'I Agree' button will activate after you hear them.",
+      "ta": "எங்கள் விதிமுறைகளை படிக்கவும் / கேளுங்கள். கேட்ட பிறகு 'ஒப்புக்கொள்கிறேன்' பொத்தான் இயக்கமாகும்.",
+      "hi": "हमारी शर्तें पढ़ें / सुनें। उन्हें सुनने के बाद 'मैं सहमत हूँ' बटन सक्रिय हो जाएगा।"
     },
     "inputType": "declaration_agree",
     "inputConfig": {},

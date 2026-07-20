@@ -2,6 +2,7 @@
 
 @import "tailwindcss";
 
+/* ── Dark mode (default) ── */
 :root {
   --myntra-pink: #FF3F6C;
   --myntra-dark: #14213D;
@@ -14,6 +15,17 @@
   --myntra-error: #FF5252;
   --myntra-text: #F0F4FF;
   --myntra-subtext: #A8B8D8;
+}
+
+/* ── Light mode ── */
+body.light-mode {
+  --myntra-dark: #F4F6FB;
+  --myntra-surface: #FFFFFF;
+  --myntra-card: #F0F4FF;
+  --myntra-border: #D0D8EE;
+  --myntra-muted: #7080A0;
+  --myntra-text: #1A2744;
+  --myntra-subtext: #3A507A;
 }
 
 * {
@@ -33,6 +45,7 @@ body {
   color: var(--myntra-text);
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
 /* Tile buttons */
@@ -65,7 +78,7 @@ body {
 .tile-btn.selected {
   border-color: var(--myntra-pink);
   background: rgba(255, 63, 108, 0.2);
-  color: #fff;
+  color: var(--myntra-text);
 }
 
 .tile-btn:disabled {
@@ -162,3 +175,30 @@ body {
 .scrollable::-webkit-scrollbar { width: 4px; }
 .scrollable::-webkit-scrollbar-track { background: transparent; }
 .scrollable::-webkit-scrollbar-thumb { background: var(--myntra-border); border-radius: 4px; }
+
+/* Light mode toggle */
+.theme-toggle {
+  width: 42px;
+  height: 24px;
+  border-radius: 12px;
+  border: 2px solid var(--myntra-border);
+  background: var(--myntra-card);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+.theme-toggle .toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--myntra-muted);
+  transition: all 0.25s ease;
+}
+.theme-toggle.light .toggle-knob {
+  left: calc(100% - 18px);
+  background: var(--myntra-pink);
+}

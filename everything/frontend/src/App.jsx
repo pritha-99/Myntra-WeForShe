@@ -17,13 +17,30 @@ const LANGUAGES = [
 
 const QUESTIONS = [...manifest].sort((a, b) => a.order - b.order);
 
+// Only questions with a sidebarLabel are shown as named tabs in the sidebar
+const SIDEBAR_ENTRIES = QUESTIONS.filter(q => q.sidebarLabel);
+
 export default function App() {
   const [lang, setLang] = useState(() => getState().language || 'hi');
   const [index, setIndex] = useState(() => getState().currentIndex || 0);
   const [done, setDone] = useState(false);
   const [declarationText, setDeclarationText] = useState('');
+  const [lightMode, setLightMode] = useState(() => {
+    return localStorage.getItem('bharat_theme') === 'light';
+  });
 
   const t = useCallback((key) => STRINGS[lang]?.[key] || STRINGS.en?.[key] || key, [lang]);
+
+  // Apply/remove light-mode class on body
+  useEffect(() => {
+    if (lightMode) {
+      document.body.classList.add('light-mode');
+      localStorage.setItem('bharat_theme', 'light');
+    } else {
+      document.body.classList.remove('light-mode');
+      localStorage.setItem('bharat_theme', 'dark');
+    }
+  }, [lightMode]);
 
   useEffect(() => {
     const entry = QUESTIONS[index];
@@ -85,11 +102,20 @@ export default function App() {
 
   const entry = QUESTIONS[index];
 
+  // Find which sidebar tab the current question belongs to
+  const currentSidebarIdx = (() => {
+    let last = 0;
+    for (let si = 0; si < SIDEBAR_ENTRIES.length; si++) {
+      if (QUESTIONS[index].order >= SIDEBAR_ENTRIES[si].order) last = si;
+    }
+    return last;
+  })();
+
   return (
-    /* Desktop two-column layout (#2) */
     <div style={{
       height: '100vh', display: 'flex', flexDirection: 'column',
       background: 'var(--myntra-dark)', overflow: 'hidden',
+      transition: 'background 0.25s ease',
     }}>
       {/* ── Top header bar ── */}
       <header style={{
@@ -116,71 +142,90 @@ export default function App() {
           </div>
         </div>
 
-        {/* Language picker */}
-        <div style={{ display: 'flex', gap: 8 }}>
-          {LANGUAGES.map((l) => (
-            <button
-              key={l.code}
-              onClick={() => handleLanguageChange(l.code)}
-              style={{
-                padding: '6px 16px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 600,
-                border: `1.5px solid ${lang === l.code ? 'var(--myntra-pink)' : 'var(--myntra-border)'}`,
-                background: lang === l.code ? 'rgba(255,63,108,0.15)' : 'transparent',
-                color: lang === l.code ? 'var(--myntra-pink)' : 'var(--myntra-muted)',
-                cursor: 'pointer', transition: 'all 0.18s ease',
-              }}
-            >
-              {l.label}
-            </button>
-          ))}
+        {/* Right controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          {/* Language picker */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            {LANGUAGES.map((l) => (
+              <button
+                key={l.code}
+                onClick={() => handleLanguageChange(l.code)}
+                style={{
+                  padding: '6px 16px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 600,
+                  border: `1.5px solid ${lang === l.code ? 'var(--myntra-pink)' : 'var(--myntra-border)'}`,
+                  background: lang === l.code ? 'rgba(255,63,108,0.15)' : 'transparent',
+                  color: lang === l.code ? 'var(--myntra-pink)' : 'var(--myntra-muted)',
+                  cursor: 'pointer', transition: 'all 0.18s ease',
+                }}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Light / Dark mode toggle */}
+          <div
+            style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
+            onClick={() => setLightMode(m => !m)}
+            title={lightMode ? 'Switch to dark mode' : 'Switch to light mode'}
+          >
+            <span style={{ fontSize: '0.78rem', color: 'var(--myntra-muted)', userSelect: 'none' }}>
+              {lightMode ? '☀️' : '🌙'}
+            </span>
+            <div className={`theme-toggle${lightMode ? ' light' : ''}`}>
+              <div className="toggle-knob" />
+            </div>
+          </div>
         </div>
       </header>
 
       {/* ── Main two-column body ── */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        {/* Left sidebar — step navigator */}
+        {/* Left sidebar — named tab navigator */}
         <aside style={{
-          width: 260, flexShrink: 0,
+          width: 230, flexShrink: 0,
           background: 'var(--myntra-surface)',
           borderRight: '1px solid var(--myntra-border)',
-          padding: '28px 20px',
+          padding: '24px 16px',
           overflowY: 'auto',
-          display: 'flex', flexDirection: 'column', gap: 8,
+          display: 'flex', flexDirection: 'column', gap: 6,
         }}>
-          <p style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--myntra-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>
+          <p style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--myntra-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>
             Progress
           </p>
-          {QUESTIONS.map((q, i) => {
-            const qText = q.questionText?.[lang] || q.questionText?.en || q.id;
-            const isCurrent = i === index;
-            const isDone = i < index;
+          {SIDEBAR_ENTRIES.map((q, si) => {
+            const label = q.sidebarLabel?.[lang] || q.sidebarLabel?.en || q.id;
+            const isCurrent = si === currentSidebarIdx;
+            const isDone = si < currentSidebarIdx;
+            // find real question index
+            const qIdx = QUESTIONS.findIndex(x => x.id === q.id);
             return (
               <div
                 key={q.id}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '10px 12px', borderRadius: 10,
+                  padding: '11px 12px', borderRadius: 10,
                   background: isCurrent ? 'rgba(255,63,108,0.12)' : 'transparent',
                   border: `1.5px solid ${isCurrent ? 'var(--myntra-pink)' : 'transparent'}`,
                   cursor: isDone ? 'pointer' : 'default',
                   transition: 'all 0.18s',
                 }}
-                onClick={() => isDone ? (setIndex(i), setCurrentIndex(i)) : null}
+                onClick={() => isDone && qIdx >= 0 ? (setIndex(qIdx), setCurrentIndex(qIdx)) : null}
               >
                 <div style={{
-                  width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
+                  width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
                   background: isDone ? 'var(--myntra-success)' : isCurrent ? 'var(--myntra-pink)' : 'var(--myntra-border)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '0.7rem', fontWeight: 700, color: isDone || isCurrent ? '#fff' : 'var(--myntra-muted)',
+                  fontSize: '0.72rem', fontWeight: 700, color: isDone || isCurrent ? '#fff' : 'var(--myntra-muted)',
                 }}>
-                  {isDone ? '✓' : i + 1}
+                  {isDone ? '✓' : si + 1}
                 </div>
                 <span style={{
-                  fontSize: '0.82rem', lineHeight: 1.4,
+                  fontSize: '0.84rem', lineHeight: 1.3,
                   color: isCurrent ? 'var(--myntra-text)' : isDone ? 'var(--myntra-subtext)' : 'var(--myntra-muted)',
-                  fontWeight: isCurrent ? 600 : 400,
+                  fontWeight: isCurrent ? 700 : isDone ? 500 : 400,
                 }}>
-                  {qText.length > 45 ? qText.slice(0, 45) + '…' : qText}
+                  {label}
                 </span>
               </div>
             );
