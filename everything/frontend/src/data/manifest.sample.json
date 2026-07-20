@@ -265,7 +265,7 @@
         { "value": "explain", "en": "Explain more", "ta": "மேலும் விளக்கவும்", "hi": "और समझाएं" }
       ]
     },
-    "validationType": null,
+    "validationType": "tan",
     "explainDocKey": "tds_explained",
     "required": true
   },

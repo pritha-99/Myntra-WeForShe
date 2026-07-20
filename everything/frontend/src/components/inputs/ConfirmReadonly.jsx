@@ -43,7 +43,7 @@ function formatValue(id, raw, language) {
   return String(raw);
 }
 
-export default function ConfirmReadonly({ entry, value, onChange, onSubmit, language, t }) {
+export default function ConfirmReadonly({ entry, value, onChange, onSubmit, language, t, onGoTo }) {
   const config = entry.inputConfig || {};
 
   // Decide which fields to show
@@ -138,21 +138,19 @@ export default function ConfirmReadonly({ entry, value, onChange, onSubmit, lang
           ✅ {t('confirmCorrect')}
         </button>
         <button
-          className={`tile-btn${value === 'wrong' ? ' selected' : ''}`}
-          onClick={() => { onChange('wrong'); onSubmit('wrong'); }}
-          style={{ flex: 1, borderColor: value === 'wrong' ? 'var(--myntra-error)' : 'var(--myntra-border)',
-                   background: value === 'wrong' ? 'rgba(255,82,82,0.18)' : 'var(--myntra-card)' }}
+          className="tile-btn"
+          onClick={() => {
+            if (entry.id === 'confirm_business_details' || entry.id === 'confirm_name') {
+              onGoTo('gstin');
+            } else {
+              onGoTo('phone');
+            }
+          }}
+          style={{ flex: 1, borderColor: 'var(--myntra-error)', background: 'rgba(255,82,82,0.18)' }}
         >
-          ❌ {t('confirmWrong')}
+          ❌ {language === 'ta' ? 'திரும்பி சென்று திருத்தவும்' : language === 'hi' ? 'वापस जाएं और सुधारें' : 'Go back and redo'}
         </button>
       </div>
-      {value === 'wrong' && (
-        <p style={{ color: 'var(--myntra-muted)', fontSize: '0.85rem', textAlign: 'center' }}>
-          {language === 'ta' ? 'இதை சரிசெய்ய support-ஐ தொடர்பு கொள்ளவும்.' :
-           language === 'hi' ? 'इसे सुधारने के लिए सहायता से संपर्क करें।' :
-           'Please contact support to correct this information.'}
-        </p>
-      )}
     </div>
   );
 }

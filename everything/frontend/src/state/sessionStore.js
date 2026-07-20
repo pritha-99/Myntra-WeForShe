@@ -6,7 +6,7 @@
 const STORAGE_KEY = 'bharat_onboarding_session';
 
 const DEFAULT_STATE = {
-  language: 'hi',
+  language: 'en',
   currentIndex: 0,
   answers: {},
   errors: {},

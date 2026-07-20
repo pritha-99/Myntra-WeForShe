@@ -93,7 +93,13 @@ export default function TileGroup({ entry, value, onChange, onSubmit, language, 
       {/* Explicit Next button as fallback */}
       <button
         className="tile-btn primary w-full"
-        onClick={onSubmit}
+        onClick={() => {
+          if (selectedOptionVal === inputVal && (!value || value === inputVal || value.trim() === '')) {
+            alert("please enter valid details");
+            return;
+          }
+          onSubmit(value);
+        }}
         disabled={!value}
         style={{ marginTop: 8 }}
       >

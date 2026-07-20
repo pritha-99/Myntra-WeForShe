@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { transcribe, isSupported, stop } from '../../api/sttProvider';
+import { cancel } from '../../api/ttsProvider';
 
 /**
  * VoiceInput — single unified text box with inline mic button.
@@ -12,6 +13,7 @@ export default function VoiceInput({ entry, value = '', onChange, onSubmit, lang
   const textareaRef = useRef(null);
 
   async function toggleListening() {
+    cancel();
     if (listening) {
       stop();
       return;

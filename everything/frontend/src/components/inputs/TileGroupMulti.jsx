@@ -76,7 +76,13 @@ export default function TileGroupMulti({ entry, value = [], onChange, onSubmit, 
 
       <button
         className="tile-btn primary w-full"
-        onClick={onSubmit}
+        onClick={() => {
+          if (customItems.length > 0 && (!customItems[0] || customItems[0] === inputVal || customItems[0].trim() === '')) {
+            alert("please enter valid details");
+            return;
+          }
+          onSubmit();
+        }}
         disabled={value.length === 0}
         style={{ marginTop: 8 }}
       >

@@ -3,6 +3,7 @@ import manifest from './data/manifest.sample.json';
 import { getState, setCurrentIndex, setLanguage, resetSession } from './state/sessionStore';
 import { explainField } from './api/client';
 import QuestionScreen from './components/QuestionScreen';
+import MiaChat from './components/MiaChat';
 
 import en from './i18n/en.json';
 import ta from './i18n/ta.json';
@@ -21,7 +22,7 @@ const QUESTIONS = [...manifest].sort((a, b) => a.order - b.order);
 const SIDEBAR_ENTRIES = QUESTIONS.filter(q => q.sidebarLabel);
 
 export default function App() {
-  const [lang, setLang] = useState(() => getState().language || 'hi');
+  const [lang, setLang] = useState(() => getState().language || 'en');
   const [index, setIndex] = useState(() => getState().currentIndex || 0);
   const [done, setDone] = useState(false);
   const [declarationText, setDeclarationText] = useState('');
@@ -95,6 +96,14 @@ export default function App() {
       const prev = index - 1;
       setIndex(prev);
       setCurrentIndex(prev);
+    }
+  }
+
+  function handleGoTo(questionId) {
+    const nextIdx = QUESTIONS.findIndex(q => q.id === questionId);
+    if (nextIdx !== -1) {
+      setIndex(nextIdx);
+      setCurrentIndex(nextIdx);
     }
   }
 
@@ -220,7 +229,6 @@ export default function App() {
           {SIDEBAR_ENTRIES.map((q, si) => {
             const label = q.sidebarLabel?.[lang] || q.sidebarLabel?.en || q.id;
             const isCurrent = si === currentSidebarIdx;
-            const isDone = si < currentSidebarIdx;
             // find real question index
             const qIdx = QUESTIONS.findIndex(x => x.id === q.id);
             const sectionStartIndex = qIdx;
@@ -231,12 +239,13 @@ export default function App() {
             let hasUnanswered = false;
             const answers = getState().answers;
             for (let i = sectionStartIndex; i < nextSectionStartIndex; i++) {
-               if (QUESTIONS[i].required !== false && QUESTIONS[i].id !== 'declaration' && !answers[QUESTIONS[i].id]) {
+               if (QUESTIONS[i].required !== false && !answers[QUESTIONS[i].id]) {
                   hasUnanswered = true;
                   break;
                }
             }
             const showWarning = showWarnings && hasUnanswered;
+            const isDone = !hasUnanswered;
 
             return (
               <div
@@ -303,11 +312,13 @@ export default function App() {
                 t={t}
                 onNext={handleNext}
                 declarationText={declarationText}
+                onGoTo={handleGoTo}
               />
             </div>
           </div>
         </main>
       </div>
+      <MiaChat entry={entry} language={lang} t={t} />
     </div>
   );
 }

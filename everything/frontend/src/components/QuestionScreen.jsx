@@ -7,7 +7,6 @@ import {
 
 import ProgressBar        from './ProgressBar';
 import AudioPlayer        from './AudioPlayer';
-import HelpButton         from './HelpButton';
 import SupportCallButton  from './SupportCallButton';
 import ErrorMessage       from './ErrorMessage';
 
@@ -44,7 +43,7 @@ const REQUIRED_MSG = {
   hi: 'जारी रखने से पहले एक उत्तर दें।',
 };
 
-export default function QuestionScreen({ entry, currentIndex, total, language, t, onNext, declarationText }) {
+export default function QuestionScreen({ entry, currentIndex, total, language, t, onNext, declarationText, onGoTo }) {
   const [inputValue, setInputValue] = useState(() => {
     const s = getState();
     return s.answers[entry.id] || (entry.inputType === 'tile_group_multi' ? [] : '');
@@ -127,9 +126,6 @@ export default function QuestionScreen({ entry, currentIndex, total, language, t
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <ProgressBar current={currentIndex} total={total} />
         <div style={{ display: 'flex', gap: 8, marginLeft: 16, flexShrink: 0 }}>
-          {entry.explainDocKey && (
-            <HelpButton entry={entry} language={language} t={t} />
-          )}
           <SupportCallButton t={t} />
         </div>
       </div>
@@ -153,6 +149,7 @@ export default function QuestionScreen({ entry, currentIndex, total, language, t
             language={language}
             t={t}
             declarationText={declarationText}
+            onGoTo={onGoTo}
           />
         ) : (
           <p style={{ color: 'var(--myntra-error)' }}>Unknown inputType: {entry.inputType}</p>
