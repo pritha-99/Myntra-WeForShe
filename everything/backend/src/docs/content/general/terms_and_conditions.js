@@ -1,0 +1,5 @@
+module.exports = {
+  en: "By registering as a Myntra seller, you agree to: (1) list only genuine, accurately described products; (2) fulfill orders within the committed timeframe; (3) maintain the quality standards specified in the Seller Agreement; (4) comply with all applicable Indian laws and regulations; (5) not engage in any fraudulent or deceptive practices. Myntra reserves the right to suspend accounts that violate these terms. For the full Terms & Conditions, visit seller.myntra.com/terms.",
+  ta: "Myntra விற்பனையாளராக பதிவு செய்வதன் மூலம், நீங்கள் ஒப்புக்கொள்கிறீர்கள்: (1) உண்மையான, துல்லியமாக விவரிக்கப்பட்ட பொருட்களை மட்டுமே பட்டியலிட; (2) நிபந்தனைகளுக்கு உட்பட்டு ஆர்டர்களை நிறைவேற்ற; (3) தரத்தை பராமரிக்க; (4) அனைத்து இந்திய சட்டங்களுக்கும் இணங்க; (5) மோசடி நடைமுறைகளில் ஈடுபடாமல் இருக்க.",
+  hi: "Myntra विक्रेता के रूप में पंजीकरण करके, आप सहमत होते हैं: (1) केवल असली, सटीक रूप से वर्णित उत्पाद सूचीबद्ध करना; (2) निर्धारित समय सीमा के भीतर ऑर्डर पूरा करना; (3) विक्रेता समझौते में निर्दिष्ट गुणवत्ता मानकों को बनाए रखना; (4) सभी लागू भारतीय कानूनों का पालन करना; (5) किसी भी धोखाधड़ी में संलग्न न होना।"
+};
