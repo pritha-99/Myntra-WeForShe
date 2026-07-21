@@ -45,6 +45,7 @@
   "dashboardHome": "होम",
   "dashboardBuying": "खरीद और इन्वेंटरी",
   "dashboardCatalog": "कैटलॉग",
+  "dashboardMyStory": "मेरी कहानी",
   "dashboardOrders": "ऑर्डर और रिटर्न",
   "dashboardGrowth": "विकास",
   "dashboardPricing": "मूल्य निर्धारण और विज्ञापन",
@@ -71,5 +72,7 @@
   "yourListings": "आपकी सूची",
   "noListings": "अभी तक कोई उत्पाद सूचीबद्ध नहीं है। ऊपर अपना पहला उत्पाद जोड़ें।",
   "listen": "सुनें",
-  "sellerIdLabel": "विक्रेता ID"
+  "sellerIdLabel": "विक्रेता ID",
+  "myStoryTitle": "मेरी कहानी",
+  "myStoryComingSoon": "Made Across India पर ग्राहकों के साथ अपनी शिल्प यात्रा साझा करें। कहानी स्लाइड, फ़ोटो और अपनी अनूठी कहानी जोड़ें — जल्द आ रहा है!"
 }

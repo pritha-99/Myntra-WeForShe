@@ -45,6 +45,7 @@
   "dashboardHome": "முகப்பு",
   "dashboardBuying": "வாங்குதல் & சரக்கு",
   "dashboardCatalog": "பட்டியல்",
+  "dashboardMyStory": "என் கதை",
   "dashboardOrders": "ஆர்டர்கள் & திரும்பல்",
   "dashboardGrowth": "வளர்ச்சி",
   "dashboardPricing": "விலை நிர்ணயம் & விளம்பரம்",
@@ -71,5 +72,7 @@
   "yourListings": "உங்கள் பட்டியல்",
   "noListings": "இன்னும் எந்த பொருளும் பட்டியலிடப்படவில்லை. மேலே உங்கள் முதல் பொருளைச் சேர்க்கவும்.",
   "listen": "கேளுங்கள்",
-  "sellerIdLabel": "விற்பனையாளர் ID"
+  "sellerIdLabel": "விற்பனையாளர் ID",
+  "myStoryTitle": "என் கதை",
+  "myStoryComingSoon": "Made Across India இல் வாடிக்கையாளர்களுடன் உங்கள் கைவினை பயணத்தைப் பகிருங்கள். கதை ஸ்லைடுகள், புகைப்படங்கள் மற்றும் உங்கள் தனித்துவமான கதையைச் சேர்க்கவும் — விரைவில் வருகிறது!"
 }

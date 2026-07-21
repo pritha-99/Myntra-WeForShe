@@ -9,6 +9,7 @@ import ConfirmationScreen from './components/ConfirmationScreen';
 import DashboardLayout from './dashboard/DashboardLayout';
 import HomePage from './dashboard/HomePage';
 import ProductListingPage from './dashboard/ProductListingPage';
+import MyStoryPage from './dashboard/MyStoryPage';
 import ComingSoonPage from './dashboard/ComingSoonPage';
 
 import en from './i18n/en.json';
@@ -281,6 +282,7 @@ export default function App() {
       <Route path="/dashboard" element={<DashboardLayout />}>
         <Route index element={<HomePage />} />
         <Route path="catalog/product-listing" element={<ProductListingPage />} />
+        <Route path="my-story" element={<MyStoryPage />} />
         {/* Coming Soon tabs */}
         <Route path="buying"   element={<ComingSoonPage tabKey="dashboardBuying" />} />
         <Route path="catalog"  element={<ComingSoonPage tabKey="dashboardCatalog" />} />

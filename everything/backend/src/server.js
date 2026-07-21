@@ -10,6 +10,7 @@ const lookupRouter   = require('./routes/lookup');
 const chatRouter     = require('./routes/chat');
 const sellerRouter   = require('./routes/seller');
 const productsRouter = require('./routes/products');
+const maiRouter      = require('./routes/mai');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -39,6 +40,7 @@ app.use('/api/chat',     chatRouter);
 // ── New MongoDB-backed routes ──
 app.use('/api/seller',   sellerRouter);
 app.use('/api/products', productsRouter);
+app.use('/api/mai',      maiRouter);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'bharat-onboarding-backend', db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' });

@@ -45,6 +45,7 @@
   "dashboardHome": "Home",
   "dashboardBuying": "Buying & Inventory",
   "dashboardCatalog": "Catalog",
+  "dashboardMyStory": "My Story",
   "dashboardOrders": "Orders & Returns",
   "dashboardGrowth": "Growth",
   "dashboardPricing": "Pricing/Promo & Ads",
@@ -71,5 +72,7 @@
   "yourListings": "Your Listings",
   "noListings": "No products listed yet. Add your first product above.",
   "listen": "Listen",
-  "sellerIdLabel": "Seller ID"
+  "sellerIdLabel": "Seller ID",
+  "myStoryTitle": "My Story",
+  "myStoryComingSoon": "Share your craft journey with customers on Made Across India. Add story slides, photos, and your unique narrative — coming soon!"
 }

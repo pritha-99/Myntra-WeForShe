@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { key: 'dashboardHome',       path: '/dashboard',                         end: true },
   { key: 'dashboardBuying',     path: '/dashboard/buying' },
   { key: 'dashboardCatalog',    path: '/dashboard/catalog',                 hasSub: true },
+  { key: 'dashboardMyStory',    path: '/dashboard/my-story' },
   { key: 'dashboardOrders',     path: '/dashboard/orders' },
   { key: 'dashboardGrowth',     path: '/dashboard/growth' },
   { key: 'dashboardPricing',    path: '/dashboard/pricing' },
