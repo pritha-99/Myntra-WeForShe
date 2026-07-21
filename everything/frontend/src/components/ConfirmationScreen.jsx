@@ -31,12 +31,8 @@ export default function ConfirmationScreen({ lang, t }) {
         setSubmitted(true);
       } catch (err) {
         console.warn('MongoDB submit failed, continuing in demo mode:', err.message);
-        // Generate a local demo sellerId so the flow isn't blocked
-        const localId = `SLR-DEMO${Math.random().toString(36).toUpperCase().slice(2, 6)}`;
-        setSellerId(localId);
-        setLocalSellerId(localId);
         setError(true);
-        setSubmitted(true);
+        setSubmitted(false);
       } finally {
         setSubmitting(false);
       }
@@ -99,6 +95,56 @@ export default function ConfirmationScreen({ lang, t }) {
             <p style={{ color: 'var(--myntra-subtext)', fontSize: '1rem' }}>
               {t('confirmationSubmitting')}
             </p>
+          </>
+        ) : error ? (
+          <>
+            <div
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                background: 'rgba(255,202,40,0.14)',
+                border: '1px solid var(--myntra-warning)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 24px',
+                fontSize: '2rem',
+              }}
+            >
+              !
+            </div>
+
+            <h1
+              style={{
+                fontSize: '1.5rem',
+                fontWeight: 800,
+                color: 'var(--myntra-text)',
+                lineHeight: 1.4,
+                marginBottom: 16,
+              }}
+            >
+              {t('confirmationTitle')}
+            </h1>
+
+            <p
+              style={{
+                color: 'var(--myntra-warning)',
+                lineHeight: 1.8,
+                marginBottom: 8,
+                fontSize: '0.95rem',
+              }}
+            >
+              Could not save your details to MongoDB. Fix the backend connection and try again.
+            </p>
+
+            <button
+              className="tile-btn primary"
+              style={{ padding: '16px 32px', fontSize: '1rem', fontWeight: 700 }}
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </button>
           </>
         ) : (
           <>

@@ -5,7 +5,8 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "node src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "seed:test-seller": "node test-seed-seller.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
