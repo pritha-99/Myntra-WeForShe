@@ -84,11 +84,44 @@ export default function PhotoCapture({ entry, value, onChange, onSubmit, languag
       reader.readAsDataURL(file);
     });
 
+    // Resize/Compress image using canvas
+    const compressedDataUrl = await new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        // Compress as JPEG with 0.7 quality
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+      img.onerror = () => resolve(dataUrl); // Fallback to original on error
+      img.src = dataUrl;
+    });
+
     // 2. LLM content check (only when verifyType is set)
     if (verifyType) {
       setChecking(true);
-      setPreview(dataUrl); // show preview while checking
-      const result = await simulateContentCheck(verifyType, dataUrl);
+      setPreview(compressedDataUrl); // show preview while checking
+      const result = await simulateContentCheck(verifyType, compressedDataUrl);
       setChecking(false);
       if (!result.ok) {
         setCheckError(result.reason);
@@ -99,8 +132,8 @@ export default function PhotoCapture({ entry, value, onChange, onSubmit, languag
       }
     }
 
-    setPreview(dataUrl);
-    onChange(dataUrl);
+    setPreview(compressedDataUrl);
+    onChange(compressedDataUrl);
   }
 
   function handleRetake() {

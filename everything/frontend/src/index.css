@@ -44,7 +44,6 @@ body {
   background: var(--myntra-dark);
   color: var(--myntra-text);
   -webkit-font-smoothing: antialiased;
-  overflow: hidden;
   transition: background 0.25s ease, color 0.25s ease;
 }
 

@@ -1,9 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import manifest from './data/manifest.sample.json';
 import { getState, setCurrentIndex, setLanguage, resetSession } from './state/sessionStore';
 import { explainField } from './api/client';
 import QuestionScreen from './components/QuestionScreen';
 import MiaChat from './components/MiaChat';
+import ConfirmationScreen from './components/ConfirmationScreen';
+import DashboardLayout from './dashboard/DashboardLayout';
+import HomePage from './dashboard/HomePage';
+import ProductListingPage from './dashboard/ProductListingPage';
+import ComingSoonPage from './dashboard/ComingSoonPage';
 
 import en from './i18n/en.json';
 import ta from './i18n/ta.json';
@@ -17,23 +23,22 @@ const LANGUAGES = [
 ];
 
 const QUESTIONS = [...manifest].sort((a, b) => a.order - b.order);
-
-// Only questions with a sidebarLabel are shown as named tabs in the sidebar
 const SIDEBAR_ENTRIES = QUESTIONS.filter(q => q.sidebarLabel);
 
-export default function App() {
+// ─────────────────────────────────────────────────────────────
+//  Main onboarding flow (unchanged logic, new routing on done)
+// ─────────────────────────────────────────────────────────────
+function OnboardingApp() {
+  const navigate = useNavigate();
   const [lang, setLang] = useState(() => getState().language || 'en');
   const [index, setIndex] = useState(() => getState().currentIndex || 0);
   const [done, setDone] = useState(false);
   const [declarationText, setDeclarationText] = useState('');
   const [showWarnings, setShowWarnings] = useState(false);
-  const [lightMode, setLightMode] = useState(() => {
-    return localStorage.getItem('bharat_theme') === 'light';
-  });
+  const [lightMode, setLightMode] = useState(() => localStorage.getItem('bharat_theme') === 'light');
 
   const t = useCallback((key) => STRINGS[lang]?.[key] || STRINGS.en?.[key] || key, [lang]);
 
-  // Apply/remove light-mode class on body
   useEffect(() => {
     if (lightMode) {
       document.body.classList.add('light-mode');
@@ -67,9 +72,8 @@ export default function App() {
         break;
       }
     }
-    if (nextIndex === -1) {
-      nextIndex = QUESTIONS.length - 1;
-    }
+    if (nextIndex === -1) nextIndex = QUESTIONS.length - 1;
+
     if (index === QUESTIONS.length - 1) {
       setShowWarnings(true);
       const unanswered = QUESTIONS.find(q => q.required !== false && q.id !== 'declaration' && !answers[q.id]);
@@ -77,11 +81,10 @@ export default function App() {
         const uIdx = QUESTIONS.indexOf(unanswered);
         setIndex(uIdx);
         setCurrentIndex(uIdx);
-        return;
       } else {
         setDone(true);
-        return;
       }
+      return;
     }
     if (nextIndex >= QUESTIONS.length) {
       setDone(true);
@@ -107,35 +110,13 @@ export default function App() {
     }
   }
 
+  // Done → show confirmation screen (which handles MongoDB submit)
   if (done) {
-    return (
-      <div style={{
-        height: '100vh', display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-        gap: 20, padding: 32, textAlign: 'center',
-        background: 'var(--myntra-dark)',
-      }}>
-        <div style={{ fontSize: '5rem' }}>🎉</div>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--myntra-pink)' }}>
-          {t('congrats')}
-        </h1>
-        <p style={{ color: 'var(--myntra-subtext)', lineHeight: 1.8, maxWidth: 480 }}>
-          Your Myntra seller registration is complete. Our team will review your details and get back to you within 3–5 business days.
-        </p>
-        <button
-          className="tile-btn primary"
-          style={{ width: 220, marginTop: 16, padding: '14px 0' }}
-          onClick={() => { resetSession(); setIndex(0); setCurrentIndex(0); setDone(false); }}
-        >
-          Start Over
-        </button>
-      </div>
-    );
+    return <ConfirmationScreen lang={lang} t={t} />;
   }
 
   const entry = QUESTIONS[index];
 
-  // Find which sidebar tab the current question belongs to
   const currentSidebarIdx = (() => {
     let last = 0;
     for (let si = 0; si < SIDEBAR_ENTRIES.length; si++) {
@@ -145,39 +126,18 @@ export default function App() {
   })();
 
   return (
-    <div style={{
-      height: '100vh', display: 'flex', flexDirection: 'column',
-      background: 'var(--myntra-dark)', overflow: 'hidden',
-      transition: 'background 0.25s ease',
-    }}>
-      {/* ── Top header bar ── */}
-      <header style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 40px', height: 64, flexShrink: 0,
-        borderBottom: '1px solid var(--myntra-border)',
-        background: 'var(--myntra-surface)',
-      }}>
-        {/* Logo */}
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--myntra-dark)', overflow: 'hidden', transition: 'background 0.25s ease' }}>
+      {/* Top header */}
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', height: 64, flexShrink: 0, borderBottom: '1px solid var(--myntra-border)', background: 'var(--myntra-surface)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 38, height: 38, borderRadius: 10,
-            background: 'linear-gradient(135deg, var(--myntra-pink), #ff7eb3)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '1.2rem', fontWeight: 900, color: '#fff', flexShrink: 0,
-          }}>M</div>
+          <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg, var(--myntra-pink), #ff7eb3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 900, color: '#fff', flexShrink: 0 }}>M</div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--myntra-text)', lineHeight: 1.2 }}>
-              Bharat Onboarding
-            </div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--myntra-muted)' }}>
-              Myntra Seller Registration
-            </div>
+            <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--myntra-text)', lineHeight: 1.2 }}>Bharat Onboarding</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--myntra-muted)' }}>Myntra Seller Registration</div>
           </div>
         </div>
 
-        {/* Right controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          {/* Language picker */}
           <div style={{ display: 'flex', gap: 8 }}>
             {LANGUAGES.map((l) => (
               <button
@@ -196,7 +156,6 @@ export default function App() {
             ))}
           </div>
 
-          {/* Light / Dark mode toggle */}
           <div
             style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
             onClick={() => setLightMode(m => !m)}
@@ -212,37 +171,29 @@ export default function App() {
         </div>
       </header>
 
-      {/* ── Main two-column body ── */}
+      {/* Main two-column body */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        {/* Left sidebar — named tab navigator */}
-        <aside style={{
-          width: 230, flexShrink: 0,
-          background: 'var(--myntra-surface)',
-          borderRight: '1px solid var(--myntra-border)',
-          padding: '24px 16px',
-          overflowY: 'auto',
-          display: 'flex', flexDirection: 'column', gap: 6,
-        }}>
+        {/* Sidebar */}
+        <aside style={{ width: 230, flexShrink: 0, background: 'var(--myntra-surface)', borderRight: '1px solid var(--myntra-border)', padding: '24px 16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
           <p style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--myntra-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>
             Progress
           </p>
           {SIDEBAR_ENTRIES.map((q, si) => {
             const label = q.sidebarLabel?.[lang] || q.sidebarLabel?.en || q.id;
             const isCurrent = si === currentSidebarIdx;
-            // find real question index
             const qIdx = QUESTIONS.findIndex(x => x.id === q.id);
             const sectionStartIndex = qIdx;
-            const nextSectionStartIndex = si + 1 < SIDEBAR_ENTRIES.length 
-               ? QUESTIONS.findIndex(x => x.id === SIDEBAR_ENTRIES[si+1].id)
-               : QUESTIONS.length;
-            
+            const nextSectionStartIndex = si + 1 < SIDEBAR_ENTRIES.length
+              ? QUESTIONS.findIndex(x => x.id === SIDEBAR_ENTRIES[si + 1].id)
+              : QUESTIONS.length;
+
             let hasUnanswered = false;
             const answers = getState().answers;
             for (let i = sectionStartIndex; i < nextSectionStartIndex; i++) {
-               if (QUESTIONS[i].required !== false && !answers[QUESTIONS[i].id]) {
-                  hasUnanswered = true;
-                  break;
-               }
+              if (QUESTIONS[i].required !== false && !answers[QUESTIONS[i].id]) {
+                hasUnanswered = true;
+                break;
+              }
             }
             const showWarning = showWarnings && hasUnanswered;
             const isDone = !hasUnanswered;
@@ -255,8 +206,7 @@ export default function App() {
                   padding: '11px 12px', borderRadius: 10,
                   background: isCurrent ? 'rgba(255,63,108,0.12)' : 'transparent',
                   border: `1.5px solid ${isCurrent ? 'var(--myntra-pink)' : 'transparent'}`,
-                  cursor: 'pointer',
-                  transition: 'all 0.18s',
+                  cursor: 'pointer', transition: 'all 0.18s',
                 }}
                 onClick={() => qIdx >= 0 ? (setIndex(qIdx), setCurrentIndex(qIdx)) : null}
               >
@@ -265,7 +215,7 @@ export default function App() {
                   background: isDone ? 'var(--myntra-success)' : isCurrent ? 'var(--myntra-pink)' : 'var(--myntra-border)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '0.72rem', fontWeight: 700, color: isDone || isCurrent ? '#fff' : 'var(--myntra-muted)',
-                  position: 'relative'
+                  position: 'relative',
                 }}>
                   {showWarning && (
                     <span style={{ position: 'absolute', top: -5, right: -5, background: 'red', color: 'white', borderRadius: '50%', width: 14, height: 14, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>!</span>
@@ -284,19 +234,14 @@ export default function App() {
           })}
         </aside>
 
-        {/* Right main content area */}
+        {/* Main content */}
         <main style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
           <div style={{ maxWidth: 720, width: '100%', margin: '0 auto', flex: 1, display: 'flex', flexDirection: 'column' }}>
-            {/* Back button row */}
             {index > 0 && (
               <div style={{ padding: '16px 32px 0' }}>
                 <button
                   onClick={handleBack}
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'var(--myntra-muted)', fontSize: '0.88rem',
-                    display: 'flex', alignItems: 'center', gap: 6,
-                  }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--myntra-muted)', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: 6 }}
                 >
                   ← {t('back')}
                 </button>
@@ -320,5 +265,33 @@ export default function App() {
       </div>
       <MiaChat entry={entry} language={lang} t={t} />
     </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Root App — defines all routes
+// ─────────────────────────────────────────────────────────────
+export default function App() {
+  return (
+    <Routes>
+      {/* Onboarding flow (and embedded confirmation) */}
+      <Route path="/" element={<OnboardingApp />} />
+
+      {/* Seller Dashboard */}
+      <Route path="/dashboard" element={<DashboardLayout />}>
+        <Route index element={<HomePage />} />
+        <Route path="catalog/product-listing" element={<ProductListingPage />} />
+        {/* Coming Soon tabs */}
+        <Route path="buying"   element={<ComingSoonPage tabKey="dashboardBuying" />} />
+        <Route path="catalog"  element={<ComingSoonPage tabKey="dashboardCatalog" />} />
+        <Route path="orders"   element={<ComingSoonPage tabKey="dashboardOrders" />} />
+        <Route path="growth"   element={<ComingSoonPage tabKey="dashboardGrowth" />} />
+        <Route path="pricing"  element={<ComingSoonPage tabKey="dashboardPricing" />} />
+        <Route path="payment"  element={<ComingSoonPage tabKey="dashboardPayment" />} />
+        <Route path="health"   element={<ComingSoonPage tabKey="dashboardHealth" />} />
+        <Route path="reports"  element={<ComingSoonPage tabKey="dashboardReports" />} />
+        <Route path="support"  element={<ComingSoonPage tabKey="dashboardSupport" />} />
+      </Route>
+    </Routes>
   );
 }

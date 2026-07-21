@@ -88,3 +88,21 @@ export function setLanguage(lang) {
 export function resetSession() {
   _save({ ...DEFAULT_STATE });
 }
+
+// ── Seller ID (persisted in localStorage, survives session) ──
+const SELLER_ID_KEY = 'bharat_seller_id';
+
+/** Returns the sellerId stored after successful onboarding submission. */
+export function getSellerId() {
+  return localStorage.getItem(SELLER_ID_KEY) || null;
+}
+
+/** Persists the sellerId returned by /api/seller/submit. */
+export function setSellerId(id) {
+  localStorage.setItem(SELLER_ID_KEY, id);
+}
+
+/** Clears the stored sellerId (useful for testing). */
+export function clearSellerId() {
+  localStorage.removeItem(SELLER_ID_KEY);
+}

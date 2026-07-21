@@ -54,3 +54,44 @@ export function lookupIfsc(code) {
 export function chatWithGemini({ explainDocKey, language, questionText, messages }) {
   return post('/chat', { explainDocKey, language, questionText, messages });
 }
+
+/**
+ * POST /api/seller/submit — persist seller onboarding answers to MongoDB.
+ * Returns { sellerId }
+ */
+export function submitSeller(answers, language) {
+  return post('/seller/submit', { answers, language });
+}
+
+/**
+ * GET /api/seller/:sellerId — fetch seller record for dashboard.
+ * Returns { sellerId, answers, language, status, createdAt }
+ */
+export function fetchSeller(sellerId) {
+  return get(`/seller/${encodeURIComponent(sellerId)}`);
+}
+
+/**
+ * POST /api/products — create a product listing (multipart/form-data with images).
+ * formData must include: sellerId, name, price, category, quantity, images[]
+ * Returns { product }
+ */
+export async function createProduct(formData) {
+  const res = await fetch(`${BASE}/products`, {
+    method: 'POST',
+    body: formData, // no Content-Type header — browser sets it with boundary
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: 'Network error' }));
+    throw new Error(err.error || err.message || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+/**
+ * GET /api/products/:sellerId — list all products for a seller.
+ * Returns { products: [] }
+ */
+export function fetchProducts(sellerId) {
+  return get(`/products/${encodeURIComponent(sellerId)}`);
+}
