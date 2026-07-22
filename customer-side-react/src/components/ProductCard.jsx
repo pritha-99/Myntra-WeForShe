@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const CATEGORY_ICONS = {
   'Sarees': '🥻',
@@ -9,60 +9,110 @@ const CATEGORY_ICONS = {
 };
 
 export default function ProductCard({ product }) {
+  const [isWishlisted, setIsWishlisted] = useState(false);
   const icon = CATEGORY_ICONS[product.category] || '🛍️';
   const hasImage = product.images && product.images.length > 0;
   const imgSrc = hasImage ? `http://localhost:4000${product.images[0]}` : null;
+  const price = product.price || 0;
+  const originalPrice = Math.round(price * 1.35); // Simulated original price for discount display
+  const discountPercent = 35;
 
   return (
     <div
       id={`product-card-${product._id}`}
-      className="group bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 overflow-hidden border border-gray-100"
+      className="group bg-white rounded-md transition-all duration-300 hover:shadow-md overflow-hidden border border-[#eaeaec] flex flex-col justify-between"
     >
-      {/* Image / Placeholder */}
-      <div className="aspect-[3/4] w-full bg-gradient-to-br from-pink-50 to-rose-100 relative overflow-hidden">
-        {hasImage ? (
-          <img
-            src={imgSrc}
-            alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-gray-300">
-            <span className="text-5xl mb-2">{icon}</span>
-            <span className="text-xs text-gray-300">{product.category}</span>
-          </div>
-        )}
+      {/* Product Image & Overlays */}
+      <div>
+        <div className="aspect-[3/4] w-full bg-[#f5f5f6] relative overflow-hidden">
+          {hasImage ? (
+            <img
+              src={imgSrc}
+              alt={product.name}
+              className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500"
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center text-[#7e818c]">
+              <span className="text-5xl mb-2">{icon}</span>
+              <span className="text-xs font-semibold uppercase tracking-wider">{product.category}</span>
+            </div>
+          )}
 
-        {/* Stock badge */}
-        {product.quantity <= 5 && product.quantity > 0 && (
-          <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-            Only {product.quantity} left
+          {/* Wishlist Button */}
+          <button
+            onClick={() => setIsWishlisted(!isWishlisted)}
+            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 shadow-sm flex items-center justify-center text-[#282c3f] hover:text-[#ff3f6c] transition-colors cursor-pointer"
+            aria-label="Wishlist"
+          >
+            <svg
+              className={`w-4 h-4 ${isWishlisted ? 'fill-[#ff3f6c] stroke-[#ff3f6c]' : 'fill-none stroke-currentColor'}`}
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+            </svg>
+          </button>
+
+          {/* Rating Pill (Matching Myntra badge style) */}
+          <div className="absolute bottom-2.5 left-2.5 bg-white/90 backdrop-blur-xs px-2 py-0.5 rounded-xs border border-[#eaeaec] flex items-center gap-1 text-[11px] font-bold text-[#282c3f]">
+            <span>4.3</span>
+            <span className="text-[#03a685]">★</span>
+            <span className="text-[#7e818c] font-medium text-[10px]">| 621</span>
           </div>
-        )}
-        {product.quantity === 0 && (
-          <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-            <span className="text-gray-500 font-semibold text-sm">Out of Stock</span>
+
+          {/* Stock badge */}
+          {product.quantity <= 5 && product.quantity > 0 && (
+            <div className="absolute top-3 left-3 bg-[#ff3f6c] text-white text-[10px] font-bold px-2 py-0.5 rounded-xs uppercase tracking-wider">
+              Only {product.quantity} Left
+            </div>
+          )}
+          {product.quantity === 0 && (
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-xs flex items-center justify-center">
+              <span className="text-[#282c3f] font-bold text-xs uppercase tracking-wider bg-white px-3 py-1.5 border border-[#eaeaec] rounded-xs">
+                Out of Stock
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Product Details */}
+        <div className="p-3.5 flex flex-col gap-1">
+          {/* Category / Brand Name */}
+          <h3 className="text-xs font-bold text-[#282c3f] uppercase tracking-wider truncate">
+            {product.category || 'MYNTRA MADE ACROSS INDIA'}
+          </h3>
+
+          {/* Product Title */}
+          <h4 className="text-xs font-normal text-[#535766] line-clamp-1 truncate">
+            {product.name}
+          </h4>
+
+          {/* Price Section */}
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+            <span className="text-sm font-bold text-[#282c3f]">
+              ₹{price.toLocaleString('en-IN')}
+            </span>
+            <span className="text-xs text-[#7e818c] line-through">
+              ₹{originalPrice.toLocaleString('en-IN')}
+            </span>
+            <span className="text-[11px] font-bold text-[#ff905a]">
+              ({discountPercent}% OFF)
+            </span>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Info */}
-      <div className="p-3">
-        <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-1">{product.category}</p>
-        <h4 className="text-sm font-semibold text-gray-800 leading-tight line-clamp-2 mb-2 group-hover:text-pink-600 transition-colors">
-          {product.name}
-        </h4>
-        <div className="flex items-center justify-between">
-          <span className="text-base font-bold text-gray-900">
-            ₹{(product.price || 0).toLocaleString('en-IN')}
-          </span>
-          <button
-            disabled={product.quantity === 0}
-            className="text-xs bg-pink-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-pink-700 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Add
-          </button>
-        </div>
+      {/* Action Button */}
+      <div className="px-3.5 pb-3.5 pt-1">
+        <button
+          disabled={product.quantity === 0}
+          className="w-full bg-[#ff3f6c] hover:bg-[#e73961] text-white text-xs font-bold py-2.5 rounded-xs tracking-wider uppercase transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.99] flex items-center justify-center gap-1.5"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
+          </svg>
+          <span>ADD TO BAG</span>
+        </button>
       </div>
     </div>
   );

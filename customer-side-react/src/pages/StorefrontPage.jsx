@@ -3,39 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { fetchSellerDetail, fetchSellerProducts } from '../api/client';
 import ProductCard from '../components/ProductCard';
 
-const CRAFT_COLORS = {
-  'GI-Tagged': 'bg-amber-100 text-amber-800 border-amber-200',
-  'Meet the Maker': 'bg-purple-100 text-purple-800 border-purple-200',
-  'Dying Art': 'bg-red-100 text-red-700 border-red-200',
-  'Freshly Onboarded': 'bg-green-100 text-green-700 border-green-200',
-  'Textiles': 'bg-blue-100 text-blue-700 border-blue-200',
-  'Pottery': 'bg-orange-100 text-orange-700 border-orange-200',
-  'Woodwork': 'bg-yellow-100 text-yellow-700 border-yellow-200',
-};
-
-const HERO_GRADIENTS = [
-  'from-rose-950 via-pink-900 to-rose-900',
-  'from-violet-950 via-purple-900 to-indigo-900',
-  'from-amber-950 via-orange-900 to-red-900',
-  'from-teal-950 via-cyan-900 to-sky-900',
-  'from-emerald-950 via-teal-900 to-green-900',
-];
-
-function getHeroGradient(sellerId) {
-  const idx = Math.abs((sellerId || '').charCodeAt(1) || 0) % HERO_GRADIENTS.length;
-  return HERO_GRADIENTS[idx];
-}
-
 function CategoryFilter({ categories, active, onChange }) {
   if (!categories.length) return null;
   return (
     <div className="flex flex-wrap gap-2">
       <button
         onClick={() => onChange(null)}
-        className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
+        className={`px-4 py-1.5 rounded-xs text-xs font-bold uppercase tracking-wider border transition-all cursor-pointer ${
           !active
-            ? 'bg-pink-600 text-white border-pink-600 shadow-sm'
-            : 'bg-white text-gray-600 border-gray-200 hover:border-pink-400 hover:text-pink-600'
+            ? 'bg-[#ff3f6c] text-white border-[#ff3f6c] shadow-xs'
+            : 'bg-white text-[#282c3f] border-[#d4d5d9] hover:border-[#ff3f6c] hover:text-[#ff3f6c]'
         }`}
       >
         All
@@ -44,10 +21,10 @@ function CategoryFilter({ categories, active, onChange }) {
         <button
           key={cat}
           onClick={() => onChange(cat)}
-          className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
+          className={`px-4 py-1.5 rounded-xs text-xs font-bold uppercase tracking-wider border transition-all cursor-pointer ${
             active === cat
-              ? 'bg-pink-600 text-white border-pink-600 shadow-sm'
-              : 'bg-white text-gray-600 border-gray-200 hover:border-pink-400 hover:text-pink-600'
+              ? 'bg-[#ff3f6c] text-white border-[#ff3f6c] shadow-xs'
+              : 'bg-white text-[#282c3f] border-[#d4d5d9] hover:border-[#ff3f6c] hover:text-[#ff3f6c]'
           }`}
         >
           {cat}
@@ -66,6 +43,8 @@ export default function StorefrontPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState(null);
+  const [pincode, setPincode] = useState('');
+  const [pincodeStatus, setPincodeStatus] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -83,154 +62,151 @@ export default function StorefrontPage() {
     catalogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  function handleCheckPincode(e) {
+    e.preventDefault();
+    if (!pincode || pincode.length !== 6) {
+      setPincodeStatus('Please enter a valid 6-digit PIN code');
+      return;
+    }
+    setPincodeStatus(`Available for delivery at ${pincode} in 3-5 business days`);
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center gap-4 text-gray-400">
-          <div className="w-12 h-12 border-4 border-pink-200 border-t-pink-600 rounded-full animate-spin" />
-          <p className="text-sm">Loading storefront…</p>
-        </div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+        <div className="w-10 h-10 border-3 border-[#f5f5f6] border-t-[#ff3f6c] rounded-full animate-spin mb-4" />
+        <p className="text-xs font-bold text-[#7e818c] uppercase tracking-wider">Loading Storefront…</p>
       </div>
     );
   }
 
   if (error || !seller) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="text-5xl mb-4">😕</div>
-          <p className="font-semibold text-gray-700">{error || 'Seller not found'}</p>
+      <div className="min-h-screen flex items-center justify-center bg-white p-6">
+        <div className="text-center bg-[#f5f5f6] border border-[#eaeaec] rounded-md p-8 max-w-md w-full">
+          <div className="text-4xl mb-3">🛍️</div>
+          <p className="text-sm font-bold text-[#282c3f] uppercase tracking-wider mb-2">
+            {error || 'Artisan store not found'}
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="mt-4 px-5 py-2.5 bg-[#ff3f6c] text-white text-xs font-bold uppercase tracking-wider rounded-xs hover:bg-[#e73961]"
+          >
+            Explore All Brands
+          </button>
         </div>
       </div>
     );
   }
 
-  const heroGradient = getHeroGradient(sellerId);
   const initials = (seller.brandName || '??').slice(0, 2).toUpperCase();
-
-  // All unique product categories
   const productCategories = [...new Set(products.map((p) => p.category).filter(Boolean))];
   const filteredProducts = categoryFilter
     ? products.filter((p) => p.category === categoryFilter)
     : products;
 
-  // Generate artisan story
   const story = generateStory(seller);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section with Story */}
-      <div className={`relative bg-gradient-to-br ${heroGradient} overflow-hidden`}>
-        {/* Decorative blobs */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4 blur-2xl" />
+    <div className="min-h-screen bg-white">
+      {/* Brand Hero Header */}
+      <div className="bg-[#282c3f] text-white border-b border-[#eaeaec] relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+          {/* Breadcrumbs */}
+          <div className="flex items-center gap-2 text-xs text-[#94969f] font-semibold mb-6">
+            <button onClick={() => navigate('/')} className="hover:text-white transition-colors">Home</button>
+            <span>/</span>
+            <button onClick={() => navigate('/')} className="hover:text-white transition-colors">Brands</button>
+            <span>/</span>
+            <span className="text-[#ff3f6c] font-bold">{seller.brandName}</span>
+          </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-          {/* Back button */}
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-white/60 hover:text-white text-sm mb-6 transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back
-          </button>
-
-          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-            {/* Left: Brand info */}
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start justify-between">
+            {/* Left: Brand Details */}
             <div className="flex-1">
-              <div className="flex items-start gap-6 mb-6">
-                {/* Avatar */}
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center flex-shrink-0 shadow-2xl">
-                  <span className="text-white font-black text-3xl">{initials}</span>
+              <div className="flex items-start gap-5 mb-6">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xs bg-[#ff3f6c] flex items-center justify-center flex-shrink-0 shadow-md">
+                  <span className="text-white font-black text-2xl">{initials}</span>
                 </div>
 
-                {/* Brand details */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className="text-white/60 text-xs font-medium">{seller.city} · {seller.state}</span>
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <span className="text-[#94969f] text-xs font-bold uppercase tracking-wider">{seller.city} · {seller.state}</span>
                     {seller.categoryTypes?.includes('GI-Tagged') && (
-                      <span className="bg-amber-400/20 border border-amber-400/40 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      <span className="bg-[#ff905a]/20 border border-[#ff905a]/40 text-[#ff905a] text-[10px] font-bold px-2 py-0.5 rounded-xs uppercase">
                         🏷 GI-Tagged
                       </span>
                     )}
                   </div>
-                  <h1 className="text-3xl sm:text-4xl font-black text-white mb-1">{seller.brandName}</h1>
-                  <p className="text-white/60 text-sm mb-3">by {seller.founderName}</p>
+                  <h1 className="text-2xl sm:text-3xl font-black text-white mb-0.5 uppercase tracking-wider">{seller.brandName}</h1>
+                  <p className="text-[#94969f] text-xs font-semibold mb-3">by {seller.founderName}</p>
                   
-                  {/* Craft tags */}
-                  <div className="flex flex-wrap gap-2">
-                    {(seller.categoryTypes || []).map((tag) => (
-                      <span
-                        key={tag}
-                        className={`text-xs font-medium px-2.5 py-1 rounded-full border ${CRAFT_COLORS[tag] || 'bg-white/10 text-white/70 border-white/20'}`}
-                      >
-                        {tag}
-                      </span>
-                    ))}
+                  {/* Rating Badge (Matching Myntra Rating Style) */}
+                  <div className="inline-flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-xs text-xs font-bold text-white border border-white/15">
+                    <span>4.8</span>
+                    <span className="text-[#03a685]">★</span>
+                    <span className="text-[#94969f] font-normal text-[11px]">| 1.2k Ratings</span>
                   </div>
                 </div>
               </div>
 
-              {/* Artisan Story Section */}
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6">
-                <div className="inline-block bg-amber-400/20 text-amber-200 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
-                  ✦ Artisan Story
+              {/* Story summary card */}
+              <div className="bg-white/5 border border-white/10 rounded-md p-5 text-sm">
+                <div className="inline-block text-[#ff3f6c] text-xs font-black uppercase tracking-wider mb-2">
+                  ✦ Maker Story
                 </div>
-                
-                <h2 className="text-xl font-bold text-white mb-4">{story.title}</h2>
-                
-                <div className="text-white/80 leading-relaxed space-y-3 text-sm mb-5">
-                  {story.paragraphs.map((paragraph, index) => (
-                    <p key={index}>{paragraph}</p>
-                  ))}
-                </div>
-
-                {/* Highlights */}
-                {story.highlights.length > 0 && (
-                  <div className="bg-white/5 rounded-xl p-4 mb-5 space-y-2">
-                    {story.highlights.map((highlight, index) => (
-                      <div key={index} className="flex items-start gap-2 text-white/70 text-sm">
-                        <span className="text-amber-300 mt-0.5">•</span>
-                        <span>{highlight}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Scroll to catalog button */}
+                <h2 className="text-base font-bold text-white mb-2">{story.title}</h2>
+                <p className="text-[#94969f] text-xs leading-relaxed mb-4">{story.paragraphs[0]}</p>
                 <button
                   onClick={scrollToCatalog}
-                  className="w-full bg-white text-gray-900 font-bold py-3 px-6 rounded-xl hover:bg-white/90 transition-all shadow-lg flex items-center justify-center gap-2"
+                  className="bg-[#ff3f6c] hover:bg-[#e73961] text-white font-bold text-xs px-4 py-2 rounded-xs uppercase tracking-wider cursor-pointer transition-all"
                 >
-                  Swipe up to view catalogue
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  View Product Catalog →
                 </button>
               </div>
             </div>
 
-            {/* Right: Price stat card */}
-            <div className="lg:w-64 flex-shrink-0">
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 text-center sticky top-6">
-                <p className="text-white/60 text-xs uppercase tracking-widest mb-2">Starting at</p>
-                <p className="text-white font-black text-4xl mb-2">₹{(seller.avgSellingPrice || 0).toLocaleString('en-IN')}</p>
-                <p className="text-white/40 text-xs mb-4">avg. MRP ₹{(seller.avgMrp || 0).toLocaleString('en-IN')}</p>
-                
-                {/* Quick stats */}
-                <div className="border-t border-white/20 pt-4 space-y-2">
-                  <div className="text-white/70 text-sm">
-                    <span className="text-white/50 text-xs">Products:</span>
-                    <span className="ml-2 font-semibold text-white">{products.length}</span>
-                  </div>
-                  {seller.ecoTags && seller.ecoTags.length > 0 && (
-                    <div className="text-white/70 text-sm">
-                      <span className="text-white/50 text-xs">Eco-friendly</span>
-                      <span className="ml-2">🌿</span>
-                    </div>
-                  )}
+            {/* Right: Pincode & Delivery Box (Matching Myntra.png Delivery Options) */}
+            <div className="lg:w-80 w-full flex-shrink-0">
+              <div className="bg-white text-[#282c3f] border border-[#eaeaec] rounded-md p-5 shadow-xs">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#282c3f] mb-2 flex items-center gap-1.5">
+                  <span>DELIVERY OPTIONS</span>
+                  <svg className="w-4 h-4 text-[#ff3f6c]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0C2.678 5.578 2.25 6.058 2.25 6.626v.958" />
+                  </svg>
+                </h3>
+
+                <form onSubmit={handleCheckPincode} className="relative mb-3">
+                  <input
+                    type="text"
+                    maxLength="6"
+                    value={pincode}
+                    onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="Enter pincode"
+                    className="w-full bg-white border border-[#d4d5d9] text-xs font-semibold px-3 py-2.5 rounded-xs pr-16 focus:outline-none focus:border-[#ff3f6c] placeholder-[#94969f]"
+                  />
+                  <button
+                    type="submit"
+                    className="absolute right-2 top-2 text-xs font-bold text-[#ff3f6c] hover:text-[#e73961] cursor-pointer"
+                  >
+                    Check
+                  </button>
+                </form>
+
+                {pincodeStatus && (
+                  <p className="text-[11px] font-semibold text-[#03a685] mb-3">{pincodeStatus}</p>
+                )}
+
+                <div className="space-y-2 text-[11px] text-[#535766] border-t border-[#eaeaec] pt-3 font-medium">
+                  <p className="flex items-center gap-1.5">
+                    <span className="text-[#03a685] font-bold">✓</span> 100% Original Artisan Products
+                  </p>
+                  <p className="flex items-center gap-1.5">
+                    <span className="text-[#03a685] font-bold">✓</span> Pay on delivery might be available
+                  </p>
+                  <p className="flex items-center gap-1.5">
+                    <span className="text-[#03a685] font-bold">✓</span> Easy 7 days returns & exchanges
+                  </p>
                 </div>
               </div>
             </div>
@@ -238,19 +214,16 @@ export default function StorefrontPage() {
         </div>
       </div>
 
-      {/* Products Section */}
+      {/* Product Catalog Grid Section */}
       <div ref={catalogRef} className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-        {/* Section header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#eaeaec]">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Product Collection</h2>
-            <p className="text-sm text-gray-400 mt-1">
-              {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
-              {categoryFilter ? ` in "${categoryFilter}"` : ''}
+            <h2 className="text-lg font-black text-[#282c3f] uppercase tracking-wider">Product Collection</h2>
+            <p className="text-xs text-[#7e818c] font-semibold mt-0.5">
+              Showing {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'}
             </p>
           </div>
 
-          {/* Category filter pills */}
           <CategoryFilter
             categories={productCategories}
             active={categoryFilter}
@@ -258,11 +231,10 @@ export default function StorefrontPage() {
           />
         </div>
 
-        {/* Products grid */}
         {filteredProducts.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-5xl mb-4">🛍️</div>
-            <p className="text-gray-500 font-semibold">No products listed yet</p>
+          <div className="text-center py-20 bg-[#f5f5f6] border border-[#eaeaec] rounded-md">
+            <div className="text-4xl mb-3">🛍️</div>
+            <p className="text-xs font-bold text-[#7e818c] uppercase tracking-wider">No products available in this category</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -276,48 +248,16 @@ export default function StorefrontPage() {
   );
 }
 
-/**
- * Generate artisan story from seller data
- */
 function generateStory(seller) {
   const craftType = seller.categoryTypes?.[0] || 'Textiles';
   const founderName = seller.founderName || 'The artisan';
   const city = seller.city || 'their hometown';
   const state = seller.state || 'India';
-  
-  const title = seller.brandUsp || `Drawing the Mahabharata with a pen`;
-  
-  const paragraphs = [];
-  
-  if (craftType.toLowerCase().includes('kalamkari')) {
-    paragraphs.push(
-      `Kalamkari — pen-on-cloth — is a 3,000-year-old art form. ${founderName} uses a bamboo pen dipped in fermented iron-jaggery solution to draw epic mythological narratives on cotton.`
-    );
-  } else if (craftType.toLowerCase().includes('textile') || craftType.toLowerCase().includes('silk')) {
-    paragraphs.push(
-      `${founderName} practices the ancient art of ${craftType.toLowerCase()} in ${city}, ${state}. Each piece is created using traditional techniques passed down through generations, preserving centuries-old craftsmanship.`
-    );
-  } else {
-    paragraphs.push(
-      `${founderName} is a master artisan from ${city}, ${state}, specializing in ${craftType.toLowerCase()}. Using traditional methods and natural materials, each creation tells a unique story of India's rich cultural heritage.`
-    );
-  }
-  
-  if (seller.ecoTags && seller.ecoTags.some(tag => tag.toLowerCase().includes('handmade'))) {
-    paragraphs.push(
-      `Every piece is meticulously handcrafted, with attention to the smallest details. A single piece can take 40+ hours to complete, depicting intricate scenes that showcase the artist's dedication and skill.`
-    );
-  }
-  
-  const highlights = [];
-  if (seller.ecoTags && seller.ecoTags.length > 0) {
-    highlights.push(`🌿 ${seller.ecoTags.join(', ')}`);
-  }
-  if (seller.categoryTypes?.includes('GI-Tagged')) {
-    highlights.push('🏷 Geographical Indication (GI) Tagged');
-  }
-  highlights.push(`📦 Easy 7-day returns`);
-  highlights.push(`✋ 100% Handmade guarantee`);
-  
-  return { title, paragraphs, highlights };
+  const title = seller.brandUsp || `Traditional ${craftType} Craftsmanship`;
+
+  const paragraphs = [
+    `${founderName} is a acclaimed master artisan from ${city}, ${state}, specializing in traditional ${craftType.toLowerCase()}. Using time-honored techniques passed down through generations, each creation embodies centuries of Indian cultural heritage.`
+  ];
+
+  return { title, paragraphs };
 }

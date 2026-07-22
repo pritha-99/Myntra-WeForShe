@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&family=Noto+Sans:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
@@ -17,15 +17,20 @@
   --myntra-subtext: #A8B8D8;
 }
 
-/* ── Light mode ── */
+/* ── Light mode (Authentic Myntra Theme) ── */
 body.light-mode {
-  --myntra-dark: #F4F6FB;
+  --myntra-dark: #F5F5F6;
   --myntra-surface: #FFFFFF;
-  --myntra-card: #F0F4FF;
-  --myntra-border: #D0D8EE;
-  --myntra-muted: #7080A0;
-  --myntra-text: #1A2744;
-  --myntra-subtext: #3A507A;
+  --myntra-card: #FFFFFF;
+  --myntra-border: #EAEAEC;
+  --myntra-muted: #7E818C;
+  --myntra-text: #282C3F;
+  --myntra-subtext: #535766;
+  --myntra-pink: #FF3F6C;
+  --myntra-pink-hover: #E73961;
+  --myntra-success: #03A685;
+  --myntra-warning: #FF905A;
+  --myntra-error: #FF5252;
 }
 
 * {
@@ -40,7 +45,7 @@ html, body, #root {
 }
 
 body {
-  font-family: 'Noto Sans', 'Noto Sans Tamil', 'Noto Sans Devanagari', sans-serif;
+  font-family: 'Assistant', 'Noto Sans', 'Noto Sans Tamil', 'Noto Sans Devanagari', sans-serif;
   background: var(--myntra-dark);
   color: var(--myntra-text);
   -webkit-font-smoothing: antialiased;
@@ -54,12 +59,12 @@ body {
   justify-content: center;
   min-height: 56px;
   padding: 12px 20px;
-  border-radius: 12px;
-  border: 2px solid var(--myntra-border);
+  border-radius: 8px;
+  border: 1px solid var(--myntra-border);
   background: var(--myntra-card);
   color: var(--myntra-text);
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.18s ease;
   text-align: center;
@@ -70,13 +75,13 @@ body {
 
 .tile-btn:hover:not(:disabled) {
   border-color: var(--myntra-pink);
-  background: rgba(255, 63, 108, 0.12);
+  background: rgba(255, 63, 108, 0.06);
   transform: translateY(-1px);
 }
 
 .tile-btn.selected {
   border-color: var(--myntra-pink);
-  background: rgba(255, 63, 108, 0.2);
+  background: rgba(255, 63, 108, 0.12);
   color: var(--myntra-text);
 }
 
@@ -90,11 +95,13 @@ body {
   border-color: var(--myntra-pink);
   color: #fff;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .tile-btn.primary:hover:not(:disabled) {
-  background: #e63060;
-  border-color: #e63060;
+  background: #e73961;
+  border-color: #e73961;
   transform: translateY(-1px);
 }
 
@@ -109,12 +116,12 @@ body {
 
 .key-btn {
   height: 60px;
-  border-radius: 12px;
-  border: 2px solid var(--myntra-border);
+  border-radius: 8px;
+  border: 1px solid var(--myntra-border);
   background: var(--myntra-card);
   color: var(--myntra-text);
   font-size: 1.4rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
   display: flex;
@@ -124,22 +131,22 @@ body {
 }
 
 .key-btn:hover:not(:disabled) {
-  background: rgba(255, 63, 108, 0.15);
+  background: rgba(255, 63, 108, 0.08);
   border-color: var(--myntra-pink);
 }
 
 .key-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
 }
 
 /* Text display box */
 .display-box {
   background: var(--myntra-surface);
   border: 2px solid var(--myntra-border);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 16px 20px;
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-align: center;
   color: var(--myntra-text);
@@ -171,16 +178,17 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-.scrollable::-webkit-scrollbar { width: 4px; }
-.scrollable::-webkit-scrollbar-track { background: transparent; }
-.scrollable::-webkit-scrollbar-thumb { background: var(--myntra-border); border-radius: 4px; }
+.scrollable::-webkit-scrollbar { width: 6px; }
+.scrollable::-webkit-scrollbar-track { background: var(--myntra-dark); }
+.scrollable::-webkit-scrollbar-thumb { background: var(--myntra-border); border-radius: 3px; }
+.scrollable::-webkit-scrollbar-thumb:hover { background: var(--myntra-pink); }
 
-/* Light mode toggle */
+/* Theme toggle */
 .theme-toggle {
   width: 42px;
   height: 24px;
   border-radius: 12px;
-  border: 2px solid var(--myntra-border);
+  border: 1.5px solid var(--myntra-border);
   background: var(--myntra-card);
   cursor: pointer;
   position: relative;
@@ -202,21 +210,11 @@ body {
   background: var(--myntra-pink);
 }
 
-/* Section Trajectory responsive styles */
-.trajectory-mobile {
-  display: inline;
-}
-
-.trajectory-desktop {
-  display: none;
-}
+/* Responsive trajectory */
+.trajectory-mobile { display: inline; }
+.trajectory-desktop { display: none; }
 
 @media (min-width: 640px) {
-  .trajectory-mobile {
-    display: none;
-  }
-  
-  .trajectory-desktop {
-    display: inline;
-  }
+  .trajectory-mobile { display: none; }
+  .trajectory-desktop { display: inline; }
 }

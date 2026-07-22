@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import MiaChat from '../components/MiaChat';
+import MyntraLogo from '../components/MyntraLogo';
 
 import en from '../i18n/en.json';
 import ta from '../i18n/ta.json';
@@ -50,7 +51,7 @@ export default function DashboardLayout({ initialLang = 'en' }) {
       {/* ── Top nav bar ── */}
       <header
         style={{
-          height: 60,
+          height: 64,
           flexShrink: 0,
           background: 'var(--myntra-surface)',
           borderBottom: '1px solid var(--myntra-border)',
@@ -59,44 +60,19 @@ export default function DashboardLayout({ initialLang = 'en' }) {
           justifyContent: 'space-between',
           padding: '0 24px',
           zIndex: 100,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
         }}
       >
-        {/* Logo + branding */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: 10,
-              background: 'linear-gradient(135deg, var(--myntra-pink), #ff7eb3)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1.1rem',
-              fontWeight: 900,
-              color: '#fff',
-              flexShrink: 0,
-            }}
-          >
-            M
-          </div>
-          <span
-            style={{
-              fontWeight: 800,
-              fontSize: '1rem',
-              color: 'var(--myntra-text)',
-              letterSpacing: '-0.02em',
-            }}
-          >
-            {t('sellerPortal')}
-          </span>
+        {/* Brand Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>
+          <MyntraLogo subtitle="SELLER PORTAL" />
         </div>
 
         {/* Horizontal nav tabs */}
         <nav
           style={{
             display: 'flex',
-            gap: 2,
+            gap: 4,
             flex: 1,
             justifyContent: 'center',
             overflowX: 'auto',
@@ -108,12 +84,14 @@ export default function DashboardLayout({ initialLang = 'en' }) {
                 to={item.path}
                 end={item.end}
                 style={({ isActive }) => ({
-                  padding: '6px 12px',
-                  borderRadius: 8,
-                  fontSize: '0.78rem',
-                  fontWeight: isActive ? 700 : 500,
-                  color: isActive ? 'var(--myntra-pink)' : 'var(--myntra-muted)',
+                  padding: '8px 14px',
+                  borderRadius: 4,
+                  fontSize: '0.75rem',
+                  fontWeight: isActive ? 800 : 700,
+                  color: isActive ? 'var(--myntra-pink)' : 'var(--myntra-text)',
                   textDecoration: 'none',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
                   transition: 'all 0.15s',
                   whiteSpace: 'nowrap',
                   display: 'block',
@@ -136,10 +114,10 @@ export default function DashboardLayout({ initialLang = 'en' }) {
                     left: 0,
                     background: 'var(--myntra-surface)',
                     border: '1px solid var(--myntra-border)',
-                    borderRadius: 10,
+                    borderRadius: 6,
                     padding: '8px 0',
                     zIndex: 999,
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
                     minWidth: 180,
                   }}
                 >
@@ -152,10 +130,11 @@ export default function DashboardLayout({ initialLang = 'en' }) {
                       background: 'none',
                       border: 'none',
                       textAlign: 'left',
-                      fontSize: '0.85rem',
+                      fontSize: '0.8rem',
                       color: 'var(--myntra-text)',
                       cursor: 'pointer',
-                      fontWeight: 600,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
                     }}
                   >
                     📦 {t('dashboardProductListing')}
@@ -169,9 +148,10 @@ export default function DashboardLayout({ initialLang = 'en' }) {
                       background: 'none',
                       border: 'none',
                       textAlign: 'left',
-                      fontSize: '0.85rem',
+                      fontSize: '0.8rem',
                       color: 'var(--myntra-muted)',
                       cursor: 'pointer',
+                      fontWeight: 600,
                     }}
                   >
                     🔜 {t('comingSoon')}
@@ -190,12 +170,12 @@ export default function DashboardLayout({ initialLang = 'en' }) {
               onClick={() => setLang(l.code)}
               style={{
                 padding: '5px 12px',
-                borderRadius: 16,
+                borderRadius: 4,
                 fontSize: '0.75rem',
-                fontWeight: 600,
-                border: `1.5px solid ${lang === l.code ? 'var(--myntra-pink)' : 'var(--myntra-border)'}`,
-                background: lang === l.code ? 'rgba(255,63,108,0.15)' : 'transparent',
-                color: lang === l.code ? 'var(--myntra-pink)' : 'var(--myntra-muted)',
+                fontWeight: 700,
+                border: `1px solid ${lang === l.code ? 'var(--myntra-pink)' : 'var(--myntra-border)'}`,
+                background: lang === l.code ? 'var(--myntra-pink)' : 'transparent',
+                color: lang === l.code ? '#ffffff' : 'var(--myntra-text)',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
               }}
@@ -206,13 +186,12 @@ export default function DashboardLayout({ initialLang = 'en' }) {
         </div>
       </header>
 
-      {/* ── Page content (rendered by child routes) ── */}
+      {/* ── Page content ── */}
       <main style={{ flex: 1, overflowY: 'auto' }}>
-        {/* Pass lang and t down via Outlet context */}
         <Outlet context={{ lang, t }} />
       </main>
 
-      {/* ── Mia help bot (context-free for dashboard) ── */}
+      {/* ── Mia help bot ── */}
       <MiaChat entry={null} language={lang} t={t} />
     </div>
   );

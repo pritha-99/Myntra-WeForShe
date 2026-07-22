@@ -6,67 +6,66 @@ import { fetchSellersGrouped } from '../api/client';
 
 function HeroBanner({ totalSellers, viewMode, onViewModeChange }) {
   return (
-    <div className="relative bg-gradient-to-br from-gray-950 via-gray-900 to-pink-950 overflow-hidden">
-      {/* Decorative circles */}
-      <div className="absolute top-0 right-0 w-72 h-72 bg-pink-600/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-56 h-56 bg-rose-500/10 rounded-full translate-y-1/2 -translate-x-1/3 blur-2xl" />
+    <div className="relative bg-gradient-to-r from-[#282c3f] via-[#1a1c29] to-[#282c3f] text-white overflow-hidden border-b border-[#eaeaec]">
+      {/* Decorative gradient accents */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-[#ff3f6c]/15 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#ff905a]/10 rounded-full translate-y-1/2 -translate-x-1/3 blur-3xl" />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
-        <div className="flex items-start justify-between">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div className="max-w-2xl">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-pink-600/20 border border-pink-500/30 text-pink-300 text-xs font-medium px-3 py-1.5 rounded-full mb-6">
-              <span className="w-1.5 h-1.5 bg-pink-400 rounded-full animate-pulse" />
-              Celebrating Women-Led Artisan Brands
+            <div className="inline-flex items-center gap-2 bg-[#ff3f6c]/20 border border-[#ff3f6c]/40 text-[#ff3f6c] text-xs font-bold px-3 py-1 rounded-full mb-4 tracking-wider uppercase">
+              <span className="w-1.5 h-1.5 bg-[#ff3f6c] rounded-full animate-pulse" />
+              MYNTRA · MADE ACROSS INDIA
             </div>
 
-            <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight mb-4">
-              Crafts that carry{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-400">
-                centuries
-              </span>{' '}
-              of stories
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight mb-3 tracking-tight">
+              Handcrafted Heritage by{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff3f6c] to-[#ff905a]">
+                Women Artisans
+              </span>
             </h1>
 
-            <p className="text-gray-300 text-base sm:text-lg leading-relaxed mb-8 max-w-xl">
-              Discover authentic handcrafted goods from{' '}
-              <span className="text-pink-300 font-semibold">{totalSellers} artisan brands</span>{' '}
-              across India — each piece a labour of love, tradition, and skill.
+            <p className="text-[#94969f] text-sm sm:text-base leading-relaxed mb-6 max-w-xl font-medium">
+              Discover authentic regional crafts from{' '}
+              <span className="text-white font-bold">{totalSellers} verified artisan brands</span>{' '}
+              across India — celebrating culture, empowerment, and exquisite craftsmanship.
             </p>
 
             {/* Stats row */}
-            <div className="flex flex-wrap gap-6">
+            <div className="flex flex-wrap gap-8 pt-2">
               {[
                 { label: 'Artisan Brands', value: totalSellers },
-                { label: 'Indian States', value: '10+' },
-                { label: 'Product Types', value: '50+' },
+                { label: 'States Covered', value: '10+' },
+                { label: 'Product Crafts', value: '50+' },
               ].map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <div className="text-2xl font-black text-pink-400">{stat.value}</div>
-                  <div className="text-xs text-gray-400 mt-0.5">{stat.label}</div>
+                <div key={stat.label} className="text-left">
+                  <div className="text-2xl font-black text-[#ff3f6c]">{stat.value}</div>
+                  <div className="text-[11px] text-[#94969f] uppercase font-bold tracking-wider mt-0.5">{stat.label}</div>
                 </div>
               ))}
             </div>
           </div>
 
           {/* View Toggle */}
-          <div className="hidden lg:flex items-center gap-2 bg-gray-800/50 backdrop-blur-sm p-1.5 rounded-xl border border-gray-700/50">
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md p-1.5 rounded-md border border-white/15">
             <button
               onClick={() => onViewModeChange('map')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded-xs text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 viewMode === 'map'
-                  ? 'bg-pink-600 text-white shadow-lg'
-                  : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
+                  ? 'bg-[#ff3f6c] text-white shadow-sm'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
               🗺️ Map View
             </button>
             <button
               onClick={() => onViewModeChange('list')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded-xs text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 viewMode === 'list'
-                  ? 'bg-pink-600 text-white shadow-lg'
-                  : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
+                  ? 'bg-[#ff3f6c] text-white shadow-sm'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
               📋 List View
@@ -80,10 +79,10 @@ function HeroBanner({ totalSellers, viewMode, onViewModeChange }) {
 
 function SearchBar({ value, onChange }) {
   return (
-    <div className="relative max-w-lg">
-      <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-400">
-          <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clipRule="evenodd" />
+    <div className="relative max-w-md w-full">
+      <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-[#7e818c]">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
       </div>
       <input
@@ -92,7 +91,7 @@ function SearchBar({ value, onChange }) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search brands, states, crafts…"
-        className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent shadow-sm placeholder-gray-400"
+        className="w-full pl-10 pr-4 py-2.5 bg-[#f5f5f6] border border-[#eaeaec] rounded-md text-xs font-medium text-[#282c3f] focus:outline-none focus:border-[#ff3f6c] focus:bg-white transition-all placeholder-[#94969f]"
       />
     </div>
   );
@@ -117,7 +116,6 @@ export default function HomePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Filter sellers by search across all states
   const filteredGrouped = React.useMemo(() => {
     if (!search.trim()) return grouped;
     const q = search.toLowerCase();
@@ -140,127 +138,114 @@ export default function HomePage() {
   const totalVisible = states.reduce((acc, s) => acc + filteredGrouped[s].length, 0);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <HeroBanner 
         totalSellers={totalSellers} 
         viewMode={viewMode}
         onViewModeChange={setViewMode}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-        {/* Mobile View Toggle */}
-        <div className="lg:hidden flex items-center justify-center gap-2 bg-white p-1.5 rounded-xl border border-gray-200 mb-6 shadow-sm">
-          <button
-            onClick={() => setViewMode('map')}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              viewMode === 'map'
-                ? 'bg-pink-600 text-white shadow-lg'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            🗺️ Map
-          </button>
-          <button
-            onClick={() => setViewMode('list')}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              viewMode === 'list'
-                ? 'bg-pink-600 text-white shadow-lg'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            📋 List
-          </button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        {/* Controls bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-4 border-b border-[#eaeaec]">
+          <SearchBar value={search} onChange={setSearch} />
+
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-bold text-[#535766]">
+              Showing <span className="text-[#282c3f] font-black">{totalVisible}</span> brands across <span className="text-[#282c3f] font-black">{states.length}</span> states
+            </span>
+
+            {/* Mobile View Toggle */}
+            <div className="flex lg:hidden items-center gap-1 bg-[#f5f5f6] p-1 rounded-md border border-[#eaeaec]">
+              <button
+                onClick={() => setViewMode('map')}
+                className={`px-3 py-1.5 rounded-xs text-[11px] font-bold uppercase transition-all ${
+                  viewMode === 'map' ? 'bg-[#ff3f6c] text-white' : 'text-[#535766]'
+                }`}
+              >
+                Map
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-3 py-1.5 rounded-xs text-[11px] font-bold uppercase transition-all ${
+                  viewMode === 'list' ? 'bg-[#ff3f6c] text-white' : 'text-[#535766]'
+                }`}
+              >
+                List
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Map View */}
-        {viewMode === 'map' && (
-          <div className="mb-10">
-            {/* Map Title */}
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-black text-gray-900 mb-2">Made Across India</h2>
-              <p className="text-gray-600">Click on a state to discover artisan brands</p>
-            </div>
-
-            {/* Interactive Map */}
-            {!loading && !error && (
-              <IndiaMap 
-                statesWithSellers={states}
-                onStateClick={(stateName) => navigate(`/state/${stateName}`)}
-              />
-            )}
-
-            {loading && (
-              <div className="flex flex-col items-center justify-center py-24 text-gray-400">
-                <div className="w-10 h-10 border-4 border-pink-200 border-t-pink-600 rounded-full animate-spin mb-4" />
-                <p className="text-sm">Loading map…</p>
-              </div>
-            )}
-
-            {error && (
-              <div className="text-center py-24">
-                <div className="text-5xl mb-4">⚠️</div>
-                <p className="text-gray-700 font-semibold mb-1">Could not load map</p>
-                <p className="text-gray-400 text-sm">{error}</p>
-              </div>
-            )}
+        {/* Loading state */}
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-10 h-10 border-3 border-[#f5f5f6] border-t-[#ff3f6c] rounded-full animate-spin mb-4" />
+            <p className="text-xs font-bold text-[#7e818c] uppercase tracking-wider">Loading Artisan Brands…</p>
           </div>
         )}
 
-        {/* List View */}
-        {viewMode === 'list' && (
-          <>
-            {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">Explore by State</h2>
-                {!loading && (
-                  <p className="text-sm text-gray-400 mt-1">
-                    {search ? `${totalVisible} brands match "${search}"` : `${states.length} states · ${totalSellers} brands`}
-                  </p>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                <SearchBar value={search} onChange={setSearch} />
-              </div>
-            </div>
+        {/* Error state */}
+        {error && (
+          <div className="bg-[#ff3f6c]/5 border border-[#ff3f6c]/20 rounded-md p-6 text-center max-w-md mx-auto my-10">
+            <p className="text-xs font-bold text-[#ff3f6c] mb-2 uppercase tracking-wider">Unable to load brands</p>
+            <p className="text-xs text-[#535766] mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="text-xs bg-[#ff3f6c] text-white px-4 py-2 rounded-xs font-bold uppercase tracking-wider hover:bg-[#e73961]"
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
-            {/* Loading */}
-            {loading && (
-              <div className="flex flex-col items-center justify-center py-24 text-gray-400">
-                <div className="w-10 h-10 border-4 border-pink-200 border-t-pink-600 rounded-full animate-spin mb-4" />
-                <p className="text-sm">Loading artisan brands…</p>
+        {/* Main Content Area */}
+        {!loading && !error && (
+          <div>
+            {viewMode === 'map' ? (
+              <div className="space-y-8">
+                <div className="bg-[#f5f5f6] rounded-md p-4 sm:p-6 border border-[#eaeaec]">
+                  <div className="text-center mb-6">
+                    <h2 className="text-lg font-black text-[#282c3f] uppercase tracking-wider mb-1">
+                      Interactive Craft Map of India
+                    </h2>
+                    <p className="text-xs text-[#535766]">
+                      Click any state to explore regional weavers, artisans, and women-led enterprises.
+                    </p>
+                  </div>
+                  <IndiaMap groupedSellers={filteredGrouped} />
+                </div>
+
+                {/* State Accordion section below map */}
+                <div className="mt-12">
+                  <h3 className="text-base font-black text-[#282c3f] uppercase tracking-wider mb-4">
+                    Explore All Regional Clusters
+                  </h3>
+                  <div className="space-y-3">
+                    {states.map((state) => (
+                      <StateAccordion
+                        key={state}
+                        stateName={state}
+                        sellers={filteredGrouped[state]}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* List View */
+              <div className="space-y-4">
+                {states.map((state) => (
+                  <StateAccordion
+                    key={state}
+                    stateName={state}
+                    sellers={filteredGrouped[state]}
+                    defaultOpen={search.length > 0}
+                  />
+                ))}
               </div>
             )}
-
-            {/* Error */}
-            {error && !loading && (
-              <div className="text-center py-24">
-                <div className="text-5xl mb-4">⚠️</div>
-                <p className="text-gray-700 font-semibold mb-1">Could not connect to backend</p>
-                <p className="text-gray-400 text-sm">{error}</p>
-                <p className="text-gray-400 text-sm mt-2">Make sure the backend is running on <code className="bg-gray-100 px-1.5 py-0.5 rounded text-pink-600">localhost:4000</code></p>
-              </div>
-            )}
-
-            {/* Empty search result */}
-            {!loading && !error && states.length === 0 && (
-              <div className="text-center py-24">
-                <div className="text-5xl mb-4">🔍</div>
-                <p className="text-gray-600 font-semibold">No brands found for "{search}"</p>
-                <p className="text-gray-400 text-sm mt-1">Try searching by state, craft, or brand name</p>
-              </div>
-            )}
-
-            {/* State accordions */}
-            {!loading && !error && states.map((state, i) => (
-              <StateAccordion
-                key={state}
-                state={state}
-                sellers={filteredGrouped[state]}
-                defaultOpen={i === 0}
-              />
-            ))}
-          </>
+          </div>
         )}
       </div>
     </div>
