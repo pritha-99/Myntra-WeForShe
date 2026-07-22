@@ -5,12 +5,13 @@ const path = require('path');
 const mongoose = require('mongoose');
 
 const validateRouter = require('./routes/validate');
-const explainRouter  = require('./routes/explain');
-const lookupRouter   = require('./routes/lookup');
-const chatRouter     = require('./routes/chat');
-const sellerRouter   = require('./routes/seller');
+const explainRouter = require('./routes/explain');
+const lookupRouter = require('./routes/lookup');
+const chatRouter = require('./routes/chat');
+const sellerRouter = require('./routes/seller');
 const productsRouter = require('./routes/products');
-const maiRouter      = require('./routes/mai');
+const maiRouter = require('./routes/mai');
+const customerRouter = require('./routes/customer');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -18,7 +19,7 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/bharat
 
 // ── Connect to MongoDB ──
 mongoose.connect(MONGODB_URI)
-  .then(() => console.log(`🍃  MongoDB connected: ${MONGODB_URI}`))
+  .then(() => console.log(`🍃  MongoDB connected`))
   .catch((err) => {
     console.error('❌  MongoDB connection failed:', err.message);
     console.warn('   Server will still start but /api/seller and /api/products routes will not work.');
@@ -33,14 +34,15 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // ── Existing routes (unchanged) ──
 app.use('/api/validate', validateRouter);
-app.use('/api/explain',  explainRouter);
-app.use('/api/lookup',   lookupRouter);
-app.use('/api/chat',     chatRouter);
+app.use('/api/explain', explainRouter);
+app.use('/api/lookup', lookupRouter);
+app.use('/api/chat', chatRouter);
 
 // ── New MongoDB-backed routes ──
-app.use('/api/seller',   sellerRouter);
+app.use('/api/seller', sellerRouter);
 app.use('/api/products', productsRouter);
-app.use('/api/mai',      maiRouter);
+app.use('/api/mai', maiRouter);
+app.use('/api/customer', customerRouter);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'bharat-onboarding-backend', db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' });

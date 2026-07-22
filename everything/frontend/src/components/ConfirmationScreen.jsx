@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { submitSeller } from '../api/client';
 import { getState } from '../state/sessionStore';
-import { setSellerId, getSellerId } from '../state/sessionStore';
+import { setSellerId } from '../state/sessionStore';
 import { speak } from '../api/ttsProvider';
 
 export default function ConfirmationScreen({ lang, t }) {
@@ -13,14 +13,6 @@ export default function ConfirmationScreen({ lang, t }) {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    // Only submit once; if we already have a sellerId (e.g. from a previous session), skip
-    const existing = getSellerId();
-    if (existing) {
-      setLocalSellerId(existing);
-      setSubmitted(true);
-      return;
-    }
-
     async function doSubmit() {
       setSubmitting(true);
       const { answers, language } = getState();

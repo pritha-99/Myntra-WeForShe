@@ -57,10 +57,102 @@ export function chatWithGemini({ explainDocKey, language, questionText, messages
 
 /**
  * POST /api/seller/submit — persist seller onboarding answers to MongoDB.
+ *
+ * Maps the flat manifest-keyed answers object (e.g. answers.brand_name,
+ * answers.warehouse_pincode) into the explicit fields the Seller schema expects.
+ *
  * Returns { sellerId }
  */
 export function submitSeller(answers, language) {
-  return post('/seller/submit', { answers, language });
+  // Derive founderName from confirm_name step (stored as object or string)
+  const confirmName = answers.confirm_name || {};
+  const founderFirstName =
+    typeof confirmName === 'object' ? confirmName.first_name : '';
+  const founderLastName =
+    typeof confirmName === 'object' ? confirmName.last_name : '';
+
+  // Derive GST-looked-up fields from confirm_business_details step
+  const confirmBiz = answers.confirm_business_details || {};
+  const companyName =
+    typeof confirmBiz === 'object' ? confirmBiz.company_name : '';
+  const pan =
+    typeof confirmBiz === 'object' ? confirmBiz.pan : '';
+  const gstState =
+    typeof confirmBiz === 'object' ? confirmBiz.state : '';
+  const entityType =
+    typeof answers.entity_type_confirm === 'object'
+      ? answers.entity_type_confirm?.entity_type
+      : answers.entity_type_confirm || '';
+
+  // Build payload with explicit fields matching the Seller schema
+  const payload = {
+    language,
+
+    // Part 1 — Registration
+    phone:  answers.phone,
+    email:  answers.email,
+    gstin:  answers.gstin,
+    companyName,
+    pan,
+    gstState,
+    founderFirstName,
+    founderLastName,
+    signaturePath: answers.signature || null,
+
+    // Part 2A — Basic Information
+    primaryContactIsOwner:     answers.primary_contact_is_owner,
+    businessOwnerIsRegistrant: answers.business_owner_is_registrant,
+    existingMyntraPartner:     answers.existing_myntra_partner,
+    entityType,
+    tdsOptional: answers.tds_optional,
+    tanNumber:   answers.tan_number || null,
+
+    // Part 2B — Business Details
+    omsChoice:            answers.b2_oms_choice,
+    operationalReadiness: answers.b3_operational_readiness || [],
+
+    // Part 2C — Warehouse (nested object)
+    warehouse: {
+      pincode:  answers.warehouse_pincode,
+      address:  answers.warehouse_address,
+      hours:    answers.warehouse_hours,
+      contact:  answers.warehouse_contact,
+      capacity: answers.warehouse_capacity
+        ? Number(answers.warehouse_capacity)
+        : undefined,
+    },
+
+    // Part 2D — Bank Details (nested object)
+    bank: {
+      accountHolder:   answers.bank_account_holder,
+      accountNumber:   answers.bank_account_number,
+      ifsc:            answers.bank_ifsc,
+      accountType:     answers.bank_account_type,
+      chequePhotoPath: answers.bank_cheque_photo || null,
+    },
+
+    // Part 2E — Brand Details
+    brandName:          answers.brand_name,
+    natureOfBusiness:   answers.nature_of_business,
+    trademarkProofPath: answers.trademark_proof || null,
+    avgMrp:             answers.brand_mrp ? Number(answers.brand_mrp) : undefined,
+    avgSellingPrice:    answers.brand_selling_price
+      ? Number(answers.brand_selling_price)
+      : undefined,
+    brandUsp: answers.brand_usp,
+    ecoTags:  answers.myntra_for_earth || [],
+
+    // Part 2F — Category & Sizing
+    categoryTypes: answers.category_type || [],
+
+    // Part 2G — Online Presence
+    sellsElsewhere: answers.sells_elsewhere || [],
+
+    // Part 2H — APOB
+    apobNeeded: answers.apob_needed,
+  };
+
+  return post('/seller/submit', payload);
 }
 
 /**
