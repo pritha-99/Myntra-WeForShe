@@ -92,6 +92,7 @@ export function submitSeller(answers, language) {
     phone:  answers.phone,
     email:  answers.email,
     gstin:  answers.gstin,
+    password: answers.password || null,
     companyName,
     pan,
     gstState,
@@ -161,6 +162,24 @@ export function submitSeller(answers, language) {
  */
 export function fetchSeller(sellerId) {
   return get(`/seller/${encodeURIComponent(sellerId)}`);
+}
+
+/**
+ * POST /api/seller/login — validate credentials against MongoDB.
+ * Returns { sellerId, brandName, companyName, status, email } on success.
+ * Throws on 401 (invalid credentials) or 500 (server error).
+ */
+export async function loginSeller(email, password) {
+  const res = await fetch(`${BASE}/seller/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await res.json().catch(() => ({ error: 'Network error' }));
+  if (!res.ok) {
+    throw new Error(data.error || `HTTP ${res.status}`);
+  }
+  return data;
 }
 
 /**

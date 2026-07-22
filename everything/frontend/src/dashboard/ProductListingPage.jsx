@@ -36,17 +36,28 @@ export default function ProductListingPage() {
   const [price, setPrice]       = useState('');
   const [category, setCategory] = useState('');
   const [quantity, setQuantity] = useState('');
-  const [images, setImages]     = useState([]); // File objects
-  const [previews, setPreviews] = useState([]); // Data URLs
+  
+  // Garment catalog state
+  const [frontImage, setFrontImage] = useState(null);
+  const [frontPreview, setFrontPreview] = useState(null);
+  const [backImage, setBackImage] = useState(null);
+  const [backPreview, setBackPreview] = useState(null);
+  const [additionalImages, setAdditionalImages] = useState([]);
+  const [additionalPreviews, setAdditionalPreviews] = useState([]);
+  const [priceTagConfirmed, setPriceTagConfirmed] = useState(false);
+  
   const [errors, setErrors]     = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast]       = useState(null); // { type: 'success'|'error', msg }
+  const [catalogModal, setCatalogModal] = useState(null); // For showing catalog results
 
   // Products list
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
 
-  const fileInputRef = useRef();
+  const frontInputRef = useRef();
+  const backInputRef = useRef();
+  const additionalInputRef = useRef();
 
   // Load existing products
   useEffect(() => {
@@ -57,14 +68,31 @@ export default function ProductListingPage() {
       .finally(() => setLoadingProducts(false));
   }, [sellerId]);
 
-  // Image selection
-  function handleImageSelect(e) {
+  // Image selection handlers
+  function handleFrontImageSelect(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFrontImage(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setFrontPreview(ev.target.result);
+    reader.readAsDataURL(file);
+  }
+
+  function handleBackImageSelect(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBackImage(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setBackPreview(ev.target.result);
+    reader.readAsDataURL(file);
+  }
+
+  function handleAdditionalImagesSelect(e) {
     const files = Array.from(e.target.files);
     if (!files.length) return;
-    const combined = [...images, ...files].slice(0, 10); // max 10
-    setImages(combined);
+    const combined = [...additionalImages, ...files].slice(0, 5); // max 5
+    setAdditionalImages(combined);
 
-    // Build preview URLs
     const readers = combined.map((file) => {
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -72,14 +100,14 @@ export default function ProductListingPage() {
         reader.readAsDataURL(file);
       });
     });
-    Promise.all(readers).then(setPreviews);
+    Promise.all(readers).then(setAdditionalPreviews);
   }
 
-  function removeImage(idx) {
-    const newImgs = images.filter((_, i) => i !== idx);
-    const newPrvs = previews.filter((_, i) => i !== idx);
-    setImages(newImgs);
-    setPreviews(newPrvs);
+  function removeAdditionalImage(idx) {
+    const newImgs = additionalImages.filter((_, i) => i !== idx);
+    const newPrvs = additionalPreviews.filter((_, i) => i !== idx);
+    setAdditionalImages(newImgs);
+    setAdditionalPreviews(newPrvs);
   }
 
   // Validation
@@ -90,6 +118,9 @@ export default function ProductListingPage() {
     if (!category) errs.category = 'Please select a category.';
     if (!quantity || isNaN(Number(quantity)) || !Number.isInteger(Number(quantity)) || Number(quantity) < 0)
       errs.quantity = 'Enter a valid whole-number quantity.';
+    if (!frontImage) errs.frontImage = 'Front flat-lay photo is required.';
+    if (!backImage) errs.backImage = 'Back flat-lay photo is required.';
+    if (additionalImages.length > 5) errs.additionalImages = 'Maximum 5 additional images allowed.';
     return errs;
   }
 
@@ -117,19 +148,32 @@ export default function ProductListingPage() {
     formData.append('price', price);
     formData.append('category', category);
     formData.append('quantity', quantity);
-    images.forEach((img) => formData.append('images', img));
+    formData.append('frontImage', frontImage);
+    formData.append('backImage', backImage);
+    formData.append('priceTagConfirmed', priceTagConfirmed);
+    additionalImages.forEach((img) => formData.append('additionalImages', img));
 
     try {
       const res = await createProduct(formData);
       setProducts((prev) => [res.product, ...prev]);
+      
+      // Show catalog modal if garmentCatalog exists
+      if (res.product.garmentCatalog) {
+        setCatalogModal(res.product.garmentCatalog);
+      }
+      
       // Reset form
       setName(''); setPrice(''); setCategory(''); setQuantity('');
-      setImages([]); setPreviews([]);
+      setFrontImage(null); setFrontPreview(null);
+      setBackImage(null); setBackPreview(null);
+      setAdditionalImages([]); setAdditionalPreviews([]);
+      setPriceTagConfirmed(false);
+      
       const msg = t('listingSuccess');
       showToast('success', msg);
       speak(msg, lang);
     } catch (err) {
-      const msg = t('listingError');
+      const msg = err.response?.data?.error || t('listingError');
       showToast('error', msg);
       speak(msg, lang);
     } finally {
@@ -245,47 +289,117 @@ export default function ProductListingPage() {
               {errors.category && <span style={errStyle}>{errors.category}</span>}
             </Field>
 
-            {/* Images */}
-            <Field label={t('productImages')}>
+            {/* Front Image - Required */}
+            <Field label="Front Flat-Lay Photo" required>
               <div
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => frontInputRef.current?.click()}
                 style={{
-                  border: `2px dashed ${images.length ? 'var(--myntra-pink)' : 'var(--myntra-border)'}`,
+                  border: `2px dashed ${frontImage ? 'var(--myntra-pink)' : errors.frontImage ? 'var(--myntra-error)' : 'var(--myntra-border)'}`,
                   borderRadius: 12,
-                  padding: '20px',
+                  padding: '16px',
                   textAlign: 'center',
                   cursor: 'pointer',
-                  background: images.length ? 'rgba(255,63,108,0.04)' : 'var(--myntra-card)',
+                  background: frontImage ? 'rgba(255,63,108,0.04)' : 'var(--myntra-card)',
                   transition: 'all 0.15s',
                 }}
               >
-                <div style={{ fontSize: '1.8rem', marginBottom: 8 }}>📷</div>
-                <p style={{ fontSize: '0.82rem', color: 'var(--myntra-muted)' }}>
-                  Click to upload images (max 10, 10MB each)
+                {frontPreview ? (
+                  <img src={frontPreview} alt="front" style={{ maxHeight: 120, borderRadius: 8 }} />
+                ) : (
+                  <>
+                    <div style={{ fontSize: '1.5rem', marginBottom: 6 }}>📷</div>
+                    <p style={{ fontSize: '0.78rem', color: 'var(--myntra-muted)' }}>
+                      Front garment photo (flat-lay)
+                    </p>
+                  </>
+                )}
+              </div>
+              <input
+                ref={frontInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleFrontImageSelect}
+              />
+              {errors.frontImage && <span style={errStyle}>{errors.frontImage}</span>}
+            </Field>
+
+            {/* Back Image - Required */}
+            <Field label="Back Flat-Lay Photo" required>
+              <div
+                onClick={() => backInputRef.current?.click()}
+                style={{
+                  border: `2px dashed ${backImage ? 'var(--myntra-pink)' : errors.backImage ? 'var(--myntra-error)' : 'var(--myntra-border)'}`,
+                  borderRadius: 12,
+                  padding: '16px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  background: backImage ? 'rgba(255,63,108,0.04)' : 'var(--myntra-card)',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {backPreview ? (
+                  <img src={backPreview} alt="back" style={{ maxHeight: 120, borderRadius: 8 }} />
+                ) : (
+                  <>
+                    <div style={{ fontSize: '1.5rem', marginBottom: 6 }}>📷</div>
+                    <p style={{ fontSize: '0.78rem', color: 'var(--myntra-muted)' }}>
+                      Back garment photo (flat-lay)
+                    </p>
+                  </>
+                )}
+              </div>
+              <input
+                ref={backInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleBackImageSelect}
+              />
+              {errors.backImage && <span style={errStyle}>{errors.backImage}</span>}
+            </Field>
+
+            {/* Additional Images - Optional */}
+            <Field label="Additional Reference Photos (Optional, max 5)">
+              <div
+                onClick={() => additionalInputRef.current?.click()}
+                style={{
+                  border: `2px dashed ${additionalImages.length ? 'var(--myntra-pink)' : 'var(--myntra-border)'}`,
+                  borderRadius: 12,
+                  padding: '16px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  background: additionalImages.length ? 'rgba(255,63,108,0.04)' : 'var(--myntra-card)',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <div style={{ fontSize: '1.5rem', marginBottom: 6 }}>📷</div>
+                <p style={{ fontSize: '0.78rem', color: 'var(--myntra-muted)' }}>
+                  Fabric detail, embroidery, or other angles
                 </p>
               </div>
               <input
-                ref={fileInputRef}
+                ref={additionalInputRef}
                 type="file"
                 accept="image/*"
                 multiple
                 style={{ display: 'none' }}
-                onChange={handleImageSelect}
+                onChange={handleAdditionalImagesSelect}
               />
 
-              {/* Image previews */}
-              {previews.length > 0 && (
+              {/* Additional previews */}
+              {additionalPreviews.length > 0 && (
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
-                  {previews.map((src, i) => (
+                  {additionalPreviews.map((src, i) => (
                     <div key={i} style={{ position: 'relative', width: 72, height: 72 }}>
                       <img
                         src={src}
-                        alt={`preview-${i}`}
+                        alt={`additional-${i}`}
                         style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--myntra-border)' }}
                       />
                       <button
                         type="button"
-                        onClick={() => removeImage(i)}
+                        onClick={(e) => { e.stopPropagation(); removeAdditionalImage(i); }}
                         style={{
                           position: 'absolute', top: -6, right: -6,
                           width: 20, height: 20, borderRadius: '50%',
@@ -301,6 +415,20 @@ export default function ProductListingPage() {
                   ))}
                 </div>
               )}
+              {errors.additionalImages && <span style={errStyle}>{errors.additionalImages}</span>}
+            </Field>
+
+            {/* Price Tag Confirmation */}
+            <Field label="">
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: '0.85rem' }}>
+                <input
+                  type="checkbox"
+                  checked={priceTagConfirmed}
+                  onChange={(e) => setPriceTagConfirmed(e.target.checked)}
+                  style={{ width: 18, height: 18, cursor: 'pointer' }}
+                />
+                <span>I confirm no price tags or stickers are visible on garments</span>
+              </label>
             </Field>
 
             <button
@@ -392,6 +520,137 @@ export default function ProductListingPage() {
           )}
         </div>
       </div>
+
+      {/* Catalog Review Modal */}
+      {catalogModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            padding: '20px',
+          }}
+          onClick={() => setCatalogModal(null)}
+        >
+          <div
+            style={{
+              background: 'var(--myntra-surface)',
+              borderRadius: 20,
+              maxWidth: 900,
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              padding: '32px',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: 24, color: 'var(--myntra-text)' }}>
+              ✨ Generated Catalog Images
+            </h2>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 20 }}>
+              {/* Front View */}
+              {catalogModal.front && (
+                <div style={{ background: 'var(--myntra-card)', borderRadius: 12, padding: 16, border: '1px solid var(--myntra-border)' }}>
+                  <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: 10, color: 'var(--myntra-text)' }}>
+                    Front View
+                    {catalogModal.front.generationStatus === 'success' && <span style={{ marginLeft: 8, color: 'green' }}>✓</span>}
+                    {catalogModal.front.generationStatus === 'failed' && <span style={{ marginLeft: 8, color: 'var(--myntra-error)' }}>✕</span>}
+                  </h3>
+                  <img
+                    src={catalogModal.front.onModel || catalogModal.front.original}
+                    alt="front"
+                    style={{ width: '100%', borderRadius: 8, marginBottom: 12 }}
+                  />
+                  {catalogModal.front.complianceReport && (
+                    <ComplianceChecklist report={catalogModal.front.complianceReport} />
+                  )}
+                </div>
+              )}
+
+              {/* Back View */}
+              {catalogModal.back && (
+                <div style={{ background: 'var(--myntra-card)', borderRadius: 12, padding: 16, border: '1px solid var(--myntra-border)' }}>
+                  <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: 10, color: 'var(--myntra-text)' }}>
+                    Back View
+                    {catalogModal.back.generationStatus === 'success' && <span style={{ marginLeft: 8, color: 'green' }}>✓</span>}
+                    {catalogModal.back.generationStatus === 'failed' && <span style={{ marginLeft: 8, color: 'var(--myntra-error)' }}>✕</span>}
+                  </h3>
+                  <img
+                    src={catalogModal.back.onModel || catalogModal.back.original}
+                    alt="back"
+                    style={{ width: '100%', borderRadius: 8, marginBottom: 12 }}
+                  />
+                  {catalogModal.back.complianceReport && (
+                    <ComplianceChecklist report={catalogModal.back.complianceReport} />
+                  )}
+                </div>
+              )}
+
+              {/* Side View */}
+              {catalogModal.side && catalogModal.side.onModel && (
+                <div style={{ background: 'var(--myntra-card)', borderRadius: 12, padding: 16, border: '1px solid var(--myntra-border)' }}>
+                  <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: 10, color: 'var(--myntra-text)' }}>
+                    Side View
+                    {catalogModal.side.generationStatus === 'success' && <span style={{ marginLeft: 8, color: 'green' }}>✓</span>}
+                    {catalogModal.side.generationStatus === 'failed' && <span style={{ marginLeft: 8, color: 'var(--myntra-error)' }}>✕</span>}
+                  </h3>
+                  <img
+                    src={catalogModal.side.onModel}
+                    alt="side"
+                    style={{ width: '100%', borderRadius: 8, marginBottom: 12 }}
+                  />
+                  {catalogModal.side.complianceReport && (
+                    <ComplianceChecklist report={catalogModal.side.complianceReport} />
+                  )}
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setCatalogModal(null)}
+              className="tile-btn primary"
+              style={{ marginTop: 24, width: '100%', padding: '12px', fontSize: '0.9rem', fontWeight: 700 }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ComplianceChecklist({ report }) {
+  const getStatusIcon = (status) => {
+    if (status === 'pass') return '✓';
+    if (status === 'warning') return '⚠';
+    if (status === 'fail') return '✕';
+    return '?';
+  };
+
+  const getStatusColor = (status) => {
+    if (status === 'pass') return 'green';
+    if (status === 'warning') return 'orange';
+    if (status === 'fail') return 'var(--myntra-error)';
+    return 'var(--myntra-muted)';
+  };
+
+  return (
+    <div style={{ fontSize: '0.75rem' }}>
+      {Object.entries(report).map(([key, value]) => (
+        <div key={key} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, color: getStatusColor(value) }}>
+          <span style={{ textTransform: 'capitalize' }}>{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+          <span style={{ fontWeight: 700 }}>{getStatusIcon(value)}</span>
+        </div>
+      ))}
     </div>
   );
 }

@@ -20,6 +20,10 @@ export default function ConfirmationScreen({ lang, t }) {
         const res = await submitSeller(answers, language || lang);
         setSellerId(res.sellerId);
         setLocalSellerId(res.sellerId);
+        // Persist login session so the dashboard auth guard accepts this new seller
+        localStorage.setItem('sellerId', res.sellerId);
+        localStorage.setItem('sellerName', answers.brand_name || answers.companyName || 'Seller');
+        localStorage.setItem('sellerEmail', answers.email || '');
         setSubmitted(true);
       } catch (err) {
         console.warn('MongoDB submit failed, continuing in demo mode:', err.message);

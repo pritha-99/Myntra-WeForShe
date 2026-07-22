@@ -12,6 +12,7 @@ import HomePage from './dashboard/HomePage';
 import ProductListingPage from './dashboard/ProductListingPage';
 import MyStoryPage from './dashboard/MyStoryPage';
 import ComingSoonPage from './dashboard/ComingSoonPage';
+import LandingPage from './LandingPage';
 
 import en from './i18n/en.json';
 import ta from './i18n/ta.json';
@@ -433,8 +434,11 @@ function OnboardingApp() {
 export default function App() {
   return (
     <Routes>
+      {/* Landing page — Register / Login entry point */}
+      <Route path="/" element={<LandingPage />} />
+
       {/* Onboarding flow (and embedded confirmation) */}
-      <Route path="/" element={<OnboardingApp />} />
+      <Route path="/onboarding" element={<OnboardingApp />} />
 
       {/* Seller Dashboard */}
       <Route path="/dashboard" element={<DashboardLayout />}>

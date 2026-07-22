@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import MiaChat from '../components/MiaChat';
 import MyntraLogo from '../components/MyntraLogo';
@@ -32,6 +32,23 @@ export default function DashboardLayout({ initialLang = 'en' }) {
   const [lang, setLang] = useState(initialLang);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const navigate = useNavigate();
+
+  // ── Auth guard: redirect to landing if not logged in ──
+  useEffect(() => {
+    const sellerId = localStorage.getItem('sellerId');
+    if (!sellerId) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
+
+  const sellerName = localStorage.getItem('sellerName') || 'Seller';
+
+  function handleLogout() {
+    localStorage.removeItem('sellerId');
+    localStorage.removeItem('sellerName');
+    localStorage.removeItem('sellerEmail');
+    navigate('/');
+  }
 
   const t = useCallback(
     (key) => STRINGS[lang]?.[key] || STRINGS.en?.[key] || key,
@@ -162,8 +179,8 @@ export default function DashboardLayout({ initialLang = 'en' }) {
           ))}
         </nav>
 
-        {/* Language toggle */}
-        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+        {/* Language toggle + Logout */}
+        <div style={{ display: 'flex', gap: 6, flexShrink: 0, alignItems: 'center' }}>
           {LANGUAGES.map((l) => (
             <button
               key={l.code}
@@ -183,6 +200,48 @@ export default function DashboardLayout({ initialLang = 'en' }) {
               {l.label}
             </button>
           ))}
+
+          {/* Seller greeting */}
+          <div style={{
+            padding: '5px 12px',
+            borderRadius: 20,
+            background: 'rgba(255,63,108,0.1)',
+            border: '1px solid rgba(255,63,108,0.25)',
+            fontSize: '0.75rem',
+            color: 'var(--myntra-pink)',
+            fontWeight: 700,
+            marginLeft: 4,
+            maxWidth: 140,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            👤 {sellerName}
+          </div>
+
+          {/* Logout button */}
+          <button
+            id="logout-btn"
+            onClick={handleLogout}
+            title="Logout"
+            style={{
+              padding: '5px 14px',
+              borderRadius: 4,
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              border: '1px solid var(--myntra-border)',
+              background: 'transparent',
+              color: 'var(--myntra-muted)',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--myntra-error)'; e.currentTarget.style.color = 'var(--myntra-error)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--myntra-border)'; e.currentTarget.style.color = 'var(--myntra-muted)'; }}
+          >
+            Logout
+          </button>
         </div>
       </header>
 

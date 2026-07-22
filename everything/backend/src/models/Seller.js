@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const { pincodeToState } = require('../utils/pincodeToState');
 
 // ── Sub-schemas ─────────────────────────────────────────────────────────────
@@ -38,9 +39,10 @@ const sellerSchema = new mongoose.Schema(
     },
 
     // ── Registration (Part 1) ─────────────────────────────────────────────
-    phone:  { type: String, trim: true },
-    email:  { type: String, trim: true, lowercase: true },
-    gstin:  { type: String, trim: true, uppercase: true },
+    phone:    { type: String, trim: true },
+    email:    { type: String, trim: true, lowercase: true },
+    gstin:    { type: String, trim: true, uppercase: true },
+    password: { type: String },   // bcrypt-hashed password set during onboarding
 
     // From GST lookup (confirm_business_details)
     companyName: { type: String, trim: true },
@@ -107,13 +109,42 @@ const sellerSchema = new mongoose.Schema(
   { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }
 );
 
-// ── Pre-save hook: derive state from warehouse pincode ───────────────────────
-sellerSchema.pre('save', function () {
+// ── Pre-save hook: hash password + derive state from warehouse pincode ─────────
+sellerSchema.pre('save', async function () {
+  // Hash password if it was set / modified
+  if (this.isModified('password') && this.password) {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+  }
+
+  // Derive state from warehouse pincode
   const pincode = this.warehouse?.pincode;
   if (pincode && !this.state) {
     const resolved = pincodeToState(pincode);
     if (resolved) this.state = resolved;
   }
 });
+
+// ── Instance method: verify password ────────────────────────────────────────
+sellerSchema.methods.verifyPassword = async function (plainText) {
+  if (!this.password) return false;
+
+  // Detect if the stored value is a bcrypt hash (starts with $2b$ or $2a$)
+  const isBcryptHash = this.password.startsWith('$2b$') || this.password.startsWith('$2a$');
+
+  if (isBcryptHash) {
+    return bcrypt.compare(plainText, this.password);
+  }
+
+  // Legacy / un-hashed password — compare directly then upgrade the hash in-place
+  const isMatch = plainText === this.password;
+  if (isMatch) {
+    // Re-hash and save so future logins use bcrypt
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(plainText, salt);
+    await this.save();
+  }
+  return isMatch;
+};
 
 module.exports = mongoose.model('Seller', sellerSchema);
