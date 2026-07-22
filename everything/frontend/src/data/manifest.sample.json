@@ -261,8 +261,7 @@
     "inputConfig": {
       "options": [
         { "value": "yes", "en": "Yes, I have a TAN number", "ta": "ஆம், என்னிடம் TAN எண் உள்ளது", "hi": "हाँ, मेरे पास TAN नंबर है", "requiresInput": true },
-        { "value": "no", "en": "No", "ta": "இல்லை", "hi": "नहीं" },
-        { "value": "explain", "en": "Explain more", "ta": "மேலும் விளக்கவும்", "hi": "और समझाएं" }
+        { "value": "no", "en": "No", "ta": "இல்லை", "hi": "नहीं" }
       ]
     },
     "validationType": "tan",

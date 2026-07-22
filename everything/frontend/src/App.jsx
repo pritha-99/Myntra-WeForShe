@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 import manifest from './data/manifest.sample.json';
 import { getState, setCurrentIndex, setLanguage, resetSession } from './state/sessionStore';
 import { explainField } from './api/client';
+import { setMuted, isMuted } from './api/ttsProvider';
 import QuestionScreen from './components/QuestionScreen';
 import MiaChat from './components/MiaChat';
 import ConfirmationScreen from './components/ConfirmationScreen';
@@ -37,6 +38,28 @@ function OnboardingApp() {
   const [declarationText, setDeclarationText] = useState('');
   const [showWarnings, setShowWarnings] = useState(false);
   const [lightMode, setLightMode] = useState(() => localStorage.getItem('bharat_theme') === 'light');
+  const [audioMuted, setAudioMuted] = useState(() => isMuted());
+  const [expandedSections, setExpandedSections] = useState(() => {
+    // Initially expand the current section
+    const currentIdx = getState().currentIndex || 0;
+    const currentQuestion = QUESTIONS[currentIdx];
+    if (!currentQuestion) return {};
+    
+    // Find which sidebar entry this question belongs to
+    const sidebarIdx = SIDEBAR_ENTRIES.findIndex((entry, si) => {
+      const qIdx = QUESTIONS.findIndex(x => x.id === entry.id);
+      const nextSectionStartIndex = si + 1 < SIDEBAR_ENTRIES.length
+        ? QUESTIONS.findIndex(x => x.id === SIDEBAR_ENTRIES[si + 1].id)
+        : QUESTIONS.length;
+      return currentIdx >= qIdx && currentIdx < nextSectionStartIndex;
+    });
+    
+    if (sidebarIdx >= 0) {
+      const uniqueKey = `${SIDEBAR_ENTRIES[sidebarIdx].section}-${sidebarIdx}`;
+      return { [uniqueKey]: true };
+    }
+    return {};
+  });
 
   const t = useCallback((key) => STRINGS[lang]?.[key] || STRINGS.en?.[key] || key, [lang]);
 
@@ -62,6 +85,12 @@ function OnboardingApp() {
   function handleLanguageChange(code) {
     setLang(code);
     setLanguage(code);
+  }
+
+  function toggleAudioMute() {
+    const newMuted = !audioMuted;
+    setAudioMuted(newMuted);
+    setMuted(newMuted);
   }
 
   function handleNext() {
@@ -157,6 +186,29 @@ function OnboardingApp() {
             ))}
           </div>
 
+          {/* Audio mute toggle */}
+          <button
+            onClick={toggleAudioMute}
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: '50%',
+              border: `2px solid ${audioMuted ? 'rgba(255,63,108,0.3)' : 'var(--myntra-border)'}`,
+              background: audioMuted ? 'rgba(255,63,108,0.12)' : 'var(--myntra-card)',
+              cursor: 'pointer',
+              fontSize: '1.1rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease',
+              flexShrink: 0,
+            }}
+            title={audioMuted ? 'Unmute audio' : 'Mute audio'}
+          >
+            {audioMuted ? '🔇' : '🔉'}
+          </button>
+
+          {/* Theme toggle */}
           <div
             style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
             onClick={() => setLightMode(m => !m)}
@@ -175,7 +227,7 @@ function OnboardingApp() {
       {/* Main two-column body */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         {/* Sidebar */}
-        <aside style={{ width: 230, flexShrink: 0, background: 'var(--myntra-surface)', borderRight: '1px solid var(--myntra-border)', padding: '24px 16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <aside style={{ width: 280, flexShrink: 0, background: 'var(--myntra-surface)', borderRight: '1px solid var(--myntra-border)', padding: '24px 16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
           <p style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--myntra-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>
             Progress
           </p>
@@ -187,6 +239,12 @@ function OnboardingApp() {
             const nextSectionStartIndex = si + 1 < SIDEBAR_ENTRIES.length
               ? QUESTIONS.findIndex(x => x.id === SIDEBAR_ENTRIES[si + 1].id)
               : QUESTIONS.length;
+
+            // Get all questions in this section
+            const sectionQuestions = QUESTIONS.slice(sectionStartIndex, nextSectionStartIndex);
+            // Use a unique key for this specific sidebar entry, not the shared section name
+            const uniqueSectionKey = `${q.section}-${si}`;
+            const isExpanded = expandedSections[uniqueSectionKey];
 
             let hasUnanswered = false;
             const answers = getState().answers;
@@ -200,36 +258,136 @@ function OnboardingApp() {
             const isDone = !hasUnanswered;
 
             return (
-              <div
-                key={q.id}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '11px 12px', borderRadius: 10,
-                  background: isCurrent ? 'rgba(255,63,108,0.12)' : 'transparent',
-                  border: `1.5px solid ${isCurrent ? 'var(--myntra-pink)' : 'transparent'}`,
-                  cursor: 'pointer', transition: 'all 0.18s',
-                }}
-                onClick={() => qIdx >= 0 ? (setIndex(qIdx), setCurrentIndex(qIdx)) : null}
-              >
-                <div style={{
-                  width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-                  background: isDone ? 'var(--myntra-success)' : isCurrent ? 'var(--myntra-pink)' : 'var(--myntra-border)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '0.72rem', fontWeight: 700, color: isDone || isCurrent ? '#fff' : 'var(--myntra-muted)',
-                  position: 'relative',
-                }}>
-                  {showWarning && (
-                    <span style={{ position: 'absolute', top: -5, right: -5, background: 'red', color: 'white', borderRadius: '50%', width: 14, height: 14, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>!</span>
-                  )}
-                  {isDone ? '✓' : si + 1}
+              <div key={q.id} style={{ marginBottom: 4 }}>
+                {/* Section header */}
+                <div
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '11px 12px', borderRadius: 10,
+                    background: isCurrent ? 'rgba(255,63,108,0.12)' : 'transparent',
+                    border: `1.5px solid ${isCurrent ? 'var(--myntra-pink)' : 'transparent'}`,
+                    cursor: 'pointer', transition: 'all 0.18s',
+                  }}
+                  onClick={() => {
+                    // Toggle section expansion
+                    setExpandedSections(prev => ({
+                      ...prev,
+                      [uniqueSectionKey]: !prev[uniqueSectionKey]
+                    }));
+                    // Also navigate to first question in section if clicking on section
+                    if (!isExpanded && qIdx >= 0) {
+                      setIndex(qIdx);
+                      setCurrentIndex(qIdx);
+                    }
+                  }}
+                >
+                  <div style={{
+                    width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+                    background: isDone ? 'var(--myntra-success)' : isCurrent ? 'var(--myntra-pink)' : 'var(--myntra-border)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '0.72rem', fontWeight: 700, color: isDone || isCurrent ? '#fff' : 'var(--myntra-muted)',
+                    position: 'relative',
+                  }}>
+                    {showWarning && (
+                      <span style={{ position: 'absolute', top: -5, right: -5, background: 'red', color: 'white', borderRadius: '50%', width: 14, height: 14, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>!</span>
+                    )}
+                    {isDone ? '✓' : si + 1}
+                  </div>
+                  <span style={{
+                    fontSize: '0.84rem', lineHeight: 1.3, flex: 1,
+                    color: isCurrent ? 'var(--myntra-text)' : isDone ? 'var(--myntra-subtext)' : 'var(--myntra-muted)',
+                    fontWeight: isCurrent ? 700 : isDone ? 500 : 400,
+                  }}>
+                    {label}
+                  </span>
+                  {/* Expand/collapse icon */}
+                  <span style={{
+                    fontSize: '0.9rem',
+                    color: 'var(--myntra-muted)',
+                    transition: 'transform 0.2s',
+                    transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                  }}>
+                    ›
+                  </span>
                 </div>
-                <span style={{
-                  fontSize: '0.84rem', lineHeight: 1.3,
-                  color: isCurrent ? 'var(--myntra-text)' : isDone ? 'var(--myntra-subtext)' : 'var(--myntra-muted)',
-                  fontWeight: isCurrent ? 700 : isDone ? 500 : 400,
-                }}>
-                  {label}
-                </span>
+
+                {/* Expanded questions list */}
+                {isExpanded && (
+                  <div style={{ marginLeft: 20, marginTop: 4, paddingLeft: 12, borderLeft: '2px solid var(--myntra-border)' }}>
+                    {sectionQuestions.map((subQ, subIdx) => {
+                      const isCurrentQuestion = subQ.id === entry.id;
+                      const isAnswered = answers[subQ.id] !== undefined && answers[subQ.id] !== '';
+                      
+                      // Get question label
+                      let questionLabel = '';
+                      if (subQ.sidebarLabel) {
+                        questionLabel = typeof subQ.sidebarLabel === 'object'
+                          ? (subQ.sidebarLabel[lang] || subQ.sidebarLabel.en || '')
+                          : subQ.sidebarLabel;
+                      } else if (subQ.questionText) {
+                        const text = typeof subQ.questionText === 'object'
+                          ? (subQ.questionText[lang] || subQ.questionText.en || '')
+                          : subQ.questionText;
+                        // Truncate for sidebar
+                        questionLabel = text.length > 30 ? text.substring(0, 30) + '...' : text;
+                      } else {
+                        questionLabel = `Q${subIdx + 1}`;
+                      }
+
+                      return (
+                        <div
+                          key={subQ.id}
+                          style={{
+                            padding: '8px 10px',
+                            borderRadius: 6,
+                            marginBottom: 2,
+                            cursor: 'pointer',
+                            background: isCurrentQuestion ? 'rgba(255,63,108,0.08)' : 'transparent',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            transition: 'all 0.15s',
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const questionIdx = QUESTIONS.findIndex(x => x.id === subQ.id);
+                            if (questionIdx >= 0) {
+                              setIndex(questionIdx);
+                              setCurrentIndex(questionIdx);
+                            }
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isCurrentQuestion) {
+                              e.currentTarget.style.background = 'rgba(255,63,108,0.05)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isCurrentQuestion) {
+                              e.currentTarget.style.background = 'transparent';
+                            }
+                          }}
+                        >
+                          {/* Status indicator */}
+                          <span style={{
+                            fontSize: '0.7rem',
+                            color: isAnswered ? 'var(--myntra-success)' : isCurrentQuestion ? 'var(--myntra-pink)' : 'var(--myntra-muted)',
+                          }}>
+                            {isAnswered ? '✓' : (isCurrentQuestion ? '●' : '○')}
+                          </span>
+                          
+                          <span style={{
+                            fontSize: '0.78rem',
+                            color: isCurrentQuestion ? 'var(--myntra-pink)' : isAnswered ? 'var(--myntra-text)' : 'var(--myntra-muted)',
+                            fontWeight: isCurrentQuestion ? 600 : 400,
+                            lineHeight: 1.3,
+                          }}>
+                            {questionLabel}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}

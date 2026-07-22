@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <style>
+      .state-path { 
+        fill: #E8DCC8; 
+        stroke: #B8A880; 
+        stroke-width: 1.5; 
+        transition: fill 0.2s ease;
+      }
+      .state-path:hover { 
+        fill: #D4C9A8; 
+      }
+      .water { 
+        fill: #C5D9E8; 
+        opacity: 0.3;
+      }
+    </style>
+  </defs>
+  
+  <!-- Water bodies (Indian Ocean, Bay of Bengal, Arabian Sea) -->
+  <rect class="water" x="0" y="0" width="800" height="1000"/>
+  
+  <!-- Jammu and Kashmir -->
+  <path class="state-path" d="M 270 80 L 300 60 L 330 70 L 350 90 L 360 120 L 340 140 L 310 130 L 280 110 Z"/>
+  
+  <!-- Himachal Pradesh -->
+  <path class="state-path" d="M 280 140 L 310 130 L 340 145 L 350 165 L 330 175 L 300 170 L 275 155 Z"/>
+  
+  <!-- Uttarakhand -->
+  <path class="state-path" d="M 350 165 L 370 160 L 395 175 L 410 195 L 395 210 L 370 205 L 355 190 Z"/>
+  
+  <!-- Punjab -->
+  <path class="state-path" d="M 255 175 L 280 165 L 305 175 L 315 195 L 300 210 L 275 205 L 260 190 Z"/>
+  
+  <!-- Chandigarh (small territory) -->
+  <circle class="state-path" cx="290" cy="195" r="8"/>
+  
+  <!-- Haryana -->
+  <path class="state-path" d="M 285 210 L 310 205 L 335 215 L 350 235 L 340 255 L 315 250 L 290 240 L 275 225 Z"/>
+  
+  <!-- Delhi (small territory) -->
+  <circle class="state-path" cx="310" cy="235" r="10"/>
+  
+  <!-- Rajasthan -->
+  <path class="state-path" d="M 185 250 L 245 230 L 285 245 L 310 270 L 330 310 L 340 360 L 320 400 L 280 420 L 240 410 L 200 390 L 175 350 L 170 300 Z"/>
+  
+  <!-- Uttar Pradesh -->
+  <path class="state-path" d="M 340 255 L 380 245 L 430 260 L 480 280 L 520 295 L 545 315 L 555 340 L 540 365 L 510 375 L 470 370 L 430 360 L 390 345 L 360 325 L 345 295 Z"/>
+  
+  <!-- Gujarat -->
+  <path class="state-path" d="M 150 360 L 195 350 L 230 370 L 250 410 L 245 460 L 230 500 L 210 520 L 180 530 L 150 520 L 130 490 L 125 450 L 135 410 Z"/>
+  
+  <!-- Madhya Pradesh -->
+  <path class="state-path" d="M 280 420 L 330 410 L 380 420 L 430 435 L 470 450 L 495 475 L 510 510 L 500 545 L 475 570 L 440 580 L 400 585 L 360 575 L 325 555 L 300 530 L 285 490 L 275 455 Z"/>
+  
+  <!-- Bihar -->
+  <path class="state-path" d="M 545 315 L 585 305 L 625 320 L 650 345 L 655 375 L 640 400 L 610 410 L 575 405 L 545 390 L 535 355 Z"/>
+  
+  <!-- Jharkhand -->
+  <path class="state-path" d="M 540 410 L 575 405 L 610 415 L 630 440 L 625 470 L 605 490 L 575 495 L 545 485 L 525 460 L 530 430 Z"/>
+  
+  <!-- West Bengal -->
+  <path class="state-path" d="M 610 415 L 645 410 L 680 425 L 705 450 L 715 485 L 710 520 L 690 545 L 665 555 L 640 550 L 620 530 L 610 500 L 615 465 L 620 440 Z"/>
+  
+  <!-- Sikkim (small state) -->
+  <path class="state-path" d="M 650 265 L 665 260 L 680 270 L 680 285 L 665 295 L 650 290 Z"/>
+  
+  <!-- Arunachal Pradesh -->
+  <path class="state-path" d="M 680 240 L 730 230 L 770 245 L 790 270 L 785 300 L 760 320 L 725 325 L 690 315 L 670 295 Z"/>
+  
+  <!-- Assam -->
+  <path class="state-path" d="M 670 310 L 705 305 L 735 320 L 755 345 L 750 370 L 725 385 L 695 385 L 670 370 L 660 345 Z"/>
+  
+  <!-- Nagaland -->
+  <path class="state-path" d="M 755 345 L 775 340 L 790 355 L 790 375 L 775 390 L 755 385 L 745 365 Z"/>
+  
+  <!-- Manipur -->
+  <path class="state-path" d="M 775 390 L 790 385 L 800 400 L 795 425 L 780 435 L 765 430 L 760 410 Z"/>
+  
+  <!-- Mizoram -->
+  <path class="state-path" d="M 745 435 L 765 430 L 775 445 L 775 465 L 760 475 L 745 470 L 738 450 Z"/>
+  
+  <!-- Tripura -->
+  <path class="state-path" d="M 710 420 L 730 415 L 745 430 L 740 450 L 725 455 L 710 445 L 708 430 Z"/>
+  
+  <!-- Meghalaya -->
+  <path class="state-path" d="M 685 365 L 710 360 L 730 375 L 730 395 L 715 405 L 695 400 L 683 382 Z"/>
+  
+  <!-- Chhattisgarh -->
+  <path class="state-path" d="M 440 510 L 480 500 L 520 515 L 540 540 L 540 570 L 525 595 L 495 605 L 460 600 L 435 580 L 430 545 Z"/>
+  
+  <!-- Odisha -->
+  <path class="state-path" d="M 525 475 L 560 470 L 590 485 L 610 510 L 615 545 L 605 580 L 580 605 L 550 615 L 525 605 L 515 575 L 520 540 L 525 505 Z"/>
+  
+  <!-- Maharashtra -->
+  <path class="state-path" d="M 245 500 L 290 485 L 340 500 L 380 520 L 410 550 L 420 590 L 410 630 L 385 665 L 350 685 L 310 690 L 270 680 L 240 655 L 220 620 L 215 580 L 225 540 Z"/>
+  
+  <!-- Goa -->
+  <path class="state-path" d="M 265 615 L 285 610 L 300 625 L 295 645 L 280 650 L 265 640 Z"/>
+  
+  <!-- Karnataka -->
+  <path class="state-path" d="M 280 680 L 320 665 L 360 670 L 395 690 L 420 720 L 430 760 L 420 800 L 395 825 L 360 840 L 325 835 L 290 820 L 270 790 L 265 750 L 270 710 Z"/>
+  
+  <!-- Telangana -->
+  <path class="state-path" d="M 420 590 L 455 580 L 485 595 L 505 620 L 505 655 L 490 680 L 465 690 L 435 685 L 415 665 L 410 630 Z"/>
+  
+  <!-- Andhra Pradesh -->
+  <path class="state-path" d="M 435 685 L 470 680 L 505 695 L 530 720 L 540 755 L 535 790 L 515 820 L 485 840 L 450 845 L 420 835 L 405 810 L 405 770 L 415 730 Z"/>
+  
+  <!-- Tamil Nadu -->
+  <path class="state-path" d="M 360 840 L 395 835 L 430 850 L 455 880 L 465 920 L 460 960 L 440 985 L 405 995 L 370 990 L 345 970 L 330 940 L 330 900 L 340 865 Z"/>
+  
+  <!-- Puducherry (small territories - shown as dots) -->
+  <circle class="state-path" cx="420" cy="875" r="6"/>
+  <circle class="state-path" cx="395" cy="960" r="5"/>
+  
+  <!-- Kerala -->
+  <path class="state-path" d="M 270 790 L 305 780 L 335 800 L 350 835 L 355 875 L 350 915 L 335 945 L 310 960 L 280 955 L 260 930 L 255 890 L 260 850 L 265 815 Z"/>
+</svg>

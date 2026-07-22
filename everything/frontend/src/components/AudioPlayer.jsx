@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { speak, cancel } from '../api/ttsProvider';
+import { speak, cancel, isMuted } from '../api/ttsProvider';
 
 /**
  * AudioPlayer — plays question text via TTS stub.
@@ -10,7 +10,8 @@ export default function AudioPlayer({ text, language, autoPlay = true }) {
   const [played, setPlayed]   = useState(false);
 
   useEffect(() => {
-    if (autoPlay && text) {
+    const muted = isMuted();
+    if (autoPlay && text && !muted) {
       playAudio();
     }
     return () => cancel();
@@ -18,6 +19,7 @@ export default function AudioPlayer({ text, language, autoPlay = true }) {
 
   async function playAudio() {
     if (playing) { cancel(); setPlaying(false); return; }
+    if (isMuted()) return; // Don't play if muted
     setPlaying(true);
     try {
       await speak(text, language);
@@ -33,13 +35,15 @@ export default function AudioPlayer({ text, language, autoPlay = true }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
       <button
         onClick={playAudio}
+        disabled={isMuted()}
         style={{
           width: 44, height: 44, borderRadius: '50%',
           border: `2px solid ${playing ? 'var(--myntra-pink)' : 'var(--myntra-border)'}`,
-          background: playing ? 'rgba(255,63,108,0.18)' : 'var(--myntra-card)',
-          cursor: 'pointer', fontSize: '1.2rem',
+          background: isMuted() ? 'var(--myntra-surface)' : playing ? 'rgba(255,63,108,0.18)' : 'var(--myntra-card)',
+          cursor: isMuted() ? 'not-allowed' : 'pointer', fontSize: '1.2rem',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           transition: 'all 0.2s ease', flexShrink: 0,
+          opacity: isMuted() ? 0.4 : 1,
         }}
         aria-label={playing ? 'Stop audio' : 'Play audio'}
       >
@@ -58,7 +62,7 @@ export default function AudioPlayer({ text, language, autoPlay = true }) {
           ))}
         </div>
       )}
-      {!playing && played && (
+      {!playing && played && !isMuted() && (
         <span style={{ color: 'var(--myntra-muted)', fontSize: '0.8rem' }}>▶ Replay</span>
       )}
     </div>

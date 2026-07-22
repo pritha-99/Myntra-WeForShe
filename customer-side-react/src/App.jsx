@@ -2,6 +2,7 @@ import React from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import HomePage from './pages/HomePage'
+import StateDetailPage from './pages/StateDetailPage'
 import StorefrontPage from './pages/StorefrontPage'
 
 const App = () => {
@@ -11,6 +12,7 @@ const App = () => {
         <Navbar />
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/state/:stateName" element={<StateDetailPage />} />
           <Route path="/storefront/:sellerId" element={<StorefrontPage />} />
         </Routes>
       </div>

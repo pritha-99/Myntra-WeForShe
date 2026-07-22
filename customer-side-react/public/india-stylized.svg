@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E8F5F0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D4E9E8;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="landGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F5EFE0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E8DCC8;stop-opacity:1" />
+    </linearGradient>
+    
+    <filter id="softShadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="0" dy="1" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <style>
+      .state { 
+        fill: url(#landGradient);
+        stroke: #B8A880; 
+        stroke-width: 1; 
+        stroke-linejoin: round;
+        transition: all 0.3s ease;
+      }
+      .state:hover { 
+        fill: #E8D4A8;
+        stroke: #9B7B5A;
+        stroke-width: 1.5;
+      }
+      .water { 
+        fill: url(#bgGradient);
+      }
+      .label {
+        font-family: 'Inter', sans-serif;
+        font-size: 8px;
+        fill: #7A6B52;
+        font-weight: 500;
+        pointer-events: none;
+      }
+    </style>
+  </defs>
+  
+  <!-- Background water -->
+  <rect class="water" x="0" y="0" width="600" height="800"/>
+  
+  <!-- Jammu & Kashmir -->
+  <path class="state" d="M 200 80 Q 190 70, 210 60 L 230 55 L 250 60 L 270 75 L 280 95 L 275 115 L 260 125 L 240 120 L 220 105 Z" filter="url(#softShadow)"/>
+  
+  <!-- Himachal Pradesh -->
+  <path class="state" d="M 220 130 L 240 125 L 260 130 L 270 145 L 265 160 L 245 165 L 225 160 L 218 145 Z" filter="url(#softShadow)"/>
+  
+  <!-- Punjab -->
+  <path class="state" d="M 180 145 L 200 140 L 220 150 L 225 165 L 215 180 L 195 180 L 175 170 Z" filter="url(#softShadow)"/>
+  
+  <!-- Uttarakhand -->
+  <path class="state" d="M 265 160 L 285 155 L 305 165 L 310 180 L 300 195 L 280 195 L 268 185 Z" filter="url(#softShadow)"/>
+  
+  <!-- Haryana -->
+  <path class="state" d="M 215 180 L 240 175 L 260 185 L 265 200 L 258 215 L 238 220 L 218 210 Z" filter="url(#softShadow)"/>
+  
+  <!-- Delhi (small) -->
+  <circle class="state" cx="245" cy="200" r="8" filter="url(#softShadow)"/>
+  
+  <!-- Rajasthan -->
+  <path class="state" d="M 120 220 L 170 210 L 215 225 L 240 250 L 250 290 L 255 330 L 245 370 L 220 395 L 185 405 L 155 400 L 130 375 L 115 340 L 110 290 L 115 250 Z" filter="url(#softShadow)"/>
+  
+  <!-- Uttar Pradesh -->
+  <path class="state" d="M 258 215 L 285 210 L 320 220 L 355 235 L 385 250 L 405 270 L 415 295 L 410 320 L 395 335 L 370 340 L 340 335 L 310 320 L 285 300 L 265 275 L 255 245 Z" filter="url(#softShadow)"/>
+  
+  <!-- Gujarat -->
+  <path class="state" d="M 75 310 L 115 300 L 145 320 L 160 355 L 165 390 L 160 425 L 145 450 L 125 465 L 100 470 L 80 460 L 70 435 L 65 400 L 68 360 Z" filter="url(#softShadow)"/>
+  
+  <!-- Madhya Pradesh -->
+  <path class="state" d="M 220 395 L 260 385 L 300 390 L 340 405 L 370 425 L 385 455 L 390 490 L 380 520 L 360 540 L 330 548 L 295 550 L 260 540 L 235 520 L 218 490 L 215 450 Z" filter="url(#softShadow)"/>
+  
+  <!-- Chhattisgarh -->
+  <path class="state" d="M 330 485 L 360 475 L 390 490 L 405 515 L 408 545 L 398 570 L 380 585 L 355 590 L 335 580 L 325 555 L 325 520 Z" filter="url(#softShadow)"/>
+  
+  <!-- Bihar -->
+  <path class="state" d="M 415 270 L 445 265 L 475 275 L 495 295 L 500 320 L 490 340 L 470 350 L 445 348 L 420 335 L 412 310 Z" filter="url(#softShadow)"/>
+  
+  <!-- Jharkhand -->
+  <path class="state" d="M 420 350 L 450 345 L 475 355 L 490 375 L 490 400 L 478 420 L 455 425 L 430 420 L 418 400 L 415 375 Z" filter="url(#softShadow)"/>
+  
+  <!-- West Bengal -->
+  <path class="state" d="M 470 350 L 500 345 L 525 360 L 540 385 L 545 415 L 540 445 L 525 465 L 505 475 L 485 470 L 470 450 L 465 420 L 468 385 Z" filter="url(#softShadow)"/>
+  
+  <!-- Sikkim -->
+  <path class="state" d="M 485 215 L 498 212 L 510 220 L 510 235 L 498 242 L 485 238 Z" filter="url(#softShadow)"/>
+  
+  <!-- Arunachal Pradesh -->
+  <path class="state" d="M 510 200 L 545 195 L 575 210 L 585 235 L 580 260 L 560 275 L 535 278 L 515 268 L 505 245 Z" filter="url(#softShadow)"/>
+  
+  <!-- Assam -->
+  <path class="state" d="M 515 270 L 540 265 L 565 280 L 580 300 L 578 325 L 560 340 L 535 340 L 515 325 Z" filter="url(#softShadow)"/>
+  
+  <!-- Nagaland -->
+  <path class="state" d="M 580 285 L 595 280 L 605 295 L 605 315 L 595 328 L 580 325 Z" filter="url(#softShadow)"/>
+  
+  <!-- Manipur -->
+  <path class="state" d="M 595 330 L 605 325 L 610 340 L 608 360 L 598 370 L 588 365 Z" filter="url(#softShadow)"/>
+  
+  <!-- Mizoram -->
+  <path class="state" d="M 580 370 L 595 365 L 600 380 L 598 398 L 588 408 L 578 403 Z" filter="url(#softShadow)"/>
+  
+  <!-- Tripura -->
+  <path class="state" d="M 550 375 L 565 370 L 578 380 L 575 398 L 563 405 L 550 398 Z" filter="url(#softShadow)"/>
+  
+  <!-- Meghalaya -->
+  <path class="state" d="M 530 325 L 548 320 L 565 332 L 565 348 L 552 358 L 535 353 Z" filter="url(#softShadow)"/>
+  
+  <!-- Odisha -->
+  <path class="state" d="M 398 420 L 430 410 L 460 425 L 480 450 L 488 480 L 485 510 L 470 535 L 445 545 L 420 540 L 405 520 L 400 485 L 398 450 Z" filter="url(#softShadow)"/>
+  
+  <!-- Maharashtra -->
+  <path class="state" d="M 165 425 L 215 410 L 260 425 L 290 450 L 310 485 L 318 520 L 315 555 L 295 585 L 270 605 L 240 615 L 210 610 L 185 590 L 168 560 L 160 520 L 162 480 Z" filter="url(#softShadow)"/>
+  
+  <!-- Goa -->
+  <path class="state" d="M 195 535 L 210 530 L 220 545 L 218 560 L 205 565 L 195 555 Z" filter="url(#softShadow)"/>
+  
+  <!-- Telangana -->
+  <path class="state" d="M 315 520 L 345 510 L 370 520 L 385 545 L 388 575 L 378 600 L 358 610 L 335 608 L 318 590 L 312 560 Z" filter="url(#softShadow)"/>
+  
+  <!-- Karnataka -->
+  <path class="state" d="M 210 610 L 250 595 L 285 600 L 315 620 L 335 650 L 345 685 L 340 720 L 320 745 L 290 758 L 260 755 L 235 738 L 215 710 L 208 675 L 205 640 Z" filter="url(#softShadow)"/>
+  
+  <!-- Andhra Pradesh -->
+  <path class="state" d="M 335 608 L 365 600 L 395 610 L 418 635 L 430 665 L 432 695 L 422 720 L 405 740 L 380 750 L 355 748 L 338 730 L 330 700 L 332 665 L 335 635 Z" filter="url(#softShadow)"/>
+  
+  <!-- Tamil Nadu -->
+  <path class="state" d="M 290 758 L 320 750 L 350 760 L 370 785 L 380 815 L 380 845 L 368 870 L 345 880 L 315 878 L 290 865 L 275 840 L 272 810 L 278 780 Z" filter="url(#softShadow)"/>
+  
+  <!-- Puducherry (dots) -->
+  <circle class="state" cx="345" cy="790" r="5" filter="url(#softShadow)"/>
+  <circle class="state" cx="325" cy="860" r="4" filter="url(#softShadow)"/>
+  
+  <!-- Kerala -->
+  <path class="state" d="M 235 738 L 265 728 L 285 745 L 295 770 L 300 800 L 300 830 L 292 858 L 275 873 L 255 878 L 238 870 L 228 850 L 225 820 L 228 790 L 232 760 Z" filter="url(#softShadow)"/>
+  
+  <!-- Chandigarh (small dot) -->
+  <circle class="state" cx="210" cy="160" r="5" filter="url(#softShadow)"/>
+</svg>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { speak, cancel } from '../../api/ttsProvider';
+import { speak, cancel, isMuted } from '../../api/ttsProvider';
 
 /**
  * DeclarationAgree — Terms & Conditions with optional audio.
@@ -16,6 +16,7 @@ export default function DeclarationAgree({ entry, declarationText, value, onChan
       setPlaying(false);
       return;
     }
+    if (isMuted()) return; // Don't play if globally muted
     setPlaying(true);
     try {
       await speak(declarationText, language);
@@ -96,7 +97,7 @@ export default function DeclarationAgree({ entry, declarationText, value, onChan
       {/* Agree button — always enabled, not gated by audio */}
       <button
         className="tile-btn primary"
-        onClick={() => { onChange('agreed'); onSubmit(); }}
+        onClick={() => onSubmit('agreed')}
         style={{ fontSize: '1rem', padding: '16px', fontWeight: 700 }}
       >
         ✅ {t('agreeAndSubmit')}

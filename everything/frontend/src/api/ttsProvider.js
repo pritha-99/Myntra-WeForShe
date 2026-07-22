@@ -15,6 +15,8 @@ const LANG_MAP = {
   hi: 'hi-IN',
 };
 
+let globalMuted = false;
+
 /**
  * Speaks the given text. Returns a Promise that resolves when speech ends
  * (including when manually cancelled) or rejects only on real errors.
@@ -23,6 +25,12 @@ export function speak(text, language = 'en') {
   return new Promise((resolve, reject) => {
     if (!window.speechSynthesis) {
       reject(new Error('speechSynthesis not supported'));
+      return;
+    }
+
+    // If muted, resolve immediately without speaking
+    if (globalMuted) {
+      resolve();
       return;
     }
 
@@ -59,6 +67,19 @@ export function cancel() {
   if (window.speechSynthesis) {
     window.speechSynthesis.cancel();
   }
+}
+
+/** Sets the global mute state. When muted, speak() calls resolve immediately without audio. */
+export function setMuted(muted) {
+  globalMuted = muted;
+  if (muted) {
+    cancel(); // Stop any ongoing speech when muting
+  }
+}
+
+/** Returns the current mute state. */
+export function isMuted() {
+  return globalMuted;
 }
 
 /** Returns true if the browser supports speechSynthesis. */
