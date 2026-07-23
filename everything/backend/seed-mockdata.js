@@ -58,6 +58,22 @@ const ProductModel = mongoose.model('Product', productSchema);
 
 // ── Mock data (from mockdata.js) ─────────────────────────────────────────────
 
+// Paths to stock model images served from /uploads (copies will be created if absent)
+// Using the 3 stock model images stored in everything/backend/src/assets/stock_models/
+const STOCK_IMG = {
+  front: '/uploads/stock-front.jpg',
+  back:  '/uploads/stock-back.jpg',
+  side:  '/uploads/stock-side.jpg',
+};
+
+// Helper: round-robin through stock images to give each product an image
+let _stockIdx = 0;
+function nextStockImg() {
+  const imgs = [STOCK_IMG.front, STOCK_IMG.back, STOCK_IMG.side];
+  return imgs[(_stockIdx++) % imgs.length];
+}
+
+
 const SELLERS = [
   { id: 's1', name: 'Meenakshi Silks', founder: 'Meenakshi Ramaswamy', city: 'Kanchipuram', state: 'Tamil Nadu', craft: ['Textiles', 'GI-Tagged', 'Meet the Maker'], brandUsp: 'Four generations of Kanchipuram silk weaving. Every saree takes 10–20 days to hand-weave.', avgMrp: 12000, avgSellingPrice: 8500, products: [{ name: 'Pure Silk Kanchipuram Saree – Amethyst', price: 8500, category: 'Sarees', quantity: 5 }, { name: 'Half-Silk Kanchipuram Saree – Pearl', price: 4200, category: 'Sarees', quantity: 8 }, { name: 'Silk Blouse Fabric – Azure Gold', price: 1200, category: 'Sarees', quantity: 20 }, { name: 'Kanchipuram Silk Dupatta', price: 2800, category: 'Sarees', quantity: 12 }] },
   { id: 's2', name: 'Ranjit Block Printing', founder: 'Ranjit Singh Choudhary', city: 'Jaipur', state: 'Rajasthan', craft: ['Textiles', 'Meet the Maker', 'GI-Tagged'], brandUsp: 'Third-generation block printer from old Jaipur. Ranjit hand-carves his own teak blocks.', avgMrp: 2200, avgSellingPrice: 1450, products: [{ name: 'Indigo Block-Print Kurta', price: 1450, category: 'Kurtas & Suits', quantity: 15 }, { name: 'Bagru Print Table Runner Set', price: 880, category: 'Home & Living', quantity: 20 }, { name: 'Sanganeri Print Kurti – Marigold', price: 1100, category: 'Kurtas & Suits', quantity: 18 }, { name: 'Block Print Bedsheet Set', price: 2200, category: 'Home & Living', quantity: 10 }] },
@@ -131,6 +147,7 @@ async function seed() {
 
     // Insert products for this seller
     for (const p of s.products) {
+      const stockImg = nextStockImg();
       const existingProduct = await ProductModel.findOne({ sellerId: s.id, name: p.name });
       if (!existingProduct) {
         await ProductModel.create({
@@ -139,10 +156,14 @@ async function seed() {
           price: p.price,
           category: p.category,
           quantity: p.quantity,
-          images: [],
+          images: [stockImg],  // Assign a stock model image for display
         });
-        console.log(`   📦 Product: ${p.name} (₹${p.price})`);
+        console.log(`   📦 Product: ${p.name} (₹${p.price}) — image: ${stockImg}`);
         productInserted++;
+      } else if (!existingProduct.images || existingProduct.images.length === 0) {
+        // Backfill existing products that have no images
+        await ProductModel.updateOne({ _id: existingProduct._id }, { $set: { images: [stockImg] } });
+        console.log(`   🔄 Backfilled image for: ${p.name}`);
       }
     }
   }

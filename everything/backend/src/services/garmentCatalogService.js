@@ -98,61 +98,63 @@ const util = require('util');
 const execFileAsync = util.promisify(execFile);
 
 // ══════════════════════════════════════════════════════════════════════════════
-// STAGE 3: CatVTON Hugging Face Space On-Model Generation
+// STAGE 3: FLUX Kontext Pro (Replicate) On-Model Generation
 // ══════════════════════════════════════════════════════════════════════════════
 
-async function generateOnModelImage(garmentImagePath, stockModelPath, pose, outputPath) {
-  const TIMEOUT_MS = 90000; // 90s timeout for CatVTON HF Space
-  const scriptPath = path.join(__dirname, 'catvton_client.py');
+/**
+ * Generate a photorealistic on-model catalog image from a flat-lay garment image
+ * using Replicate's FLUX Kontext Pro API.
+ *
+ * @param {string} garmentImagePath - Local path to the cropped/processed garment image
+ * @param {string} pose             - 'front' or 'back'
+ * @param {string} outputPath       - Where to save the generated image
+ */
+async function generateOnModelImage(garmentImagePath, pose, outputPath) {
+  const TIMEOUT_MS = 180000; // 3 min – FLUX Kontext Pro can take ~60-90 s
+  const scriptPath = path.join(__dirname, 'replicate_client.py');
 
   try {
     const args = [
       scriptPath,
-      '--person', stockModelPath,
       '--garment', garmentImagePath,
       '--output', outputPath,
-      '--cloth_type', 'upper',
-      '--steps', '20',
-      '--guidance', '2.5',
-      '--seed', '42'
+      '--pose', pose,
     ];
 
     const { stdout } = await execFileAsync('python3', args, { timeout: TIMEOUT_MS });
-    
-    // Parse json output from python script
+
+    // Parse JSON output from python script
     let res;
     try {
       res = JSON.parse(stdout.trim());
     } catch (e) {
-      // Find JSON string in stdout if extra output exists
-      const jsonMatch = stdout.match(/\{"status":.*\}/);
+      const jsonMatch = stdout.match(/{"status":.*}/);
       if (jsonMatch) {
         res = JSON.parse(jsonMatch[0]);
       } else {
-        throw new Error(`Invalid output from CatVTON script: ${stdout}`);
+        throw new Error(`Invalid output from replicate_client: ${stdout}`);
       }
     }
 
     const fileExists = await fs.stat(outputPath).then(() => true).catch(() => false);
 
     if (res.status === 'success' && fileExists) {
-      console.log(`✅ CatVTON ${pose} on-model image generated → ${path.basename(outputPath)}`);
+      console.log(`✅ FLUX Kontext Pro ${pose} on-model image generated → ${path.basename(outputPath)}`);
       return { success: true, path: outputPath };
     } else {
-      throw new Error(res.error || 'Failed to generate image via CatVTON');
+      throw new Error(res.error || 'Failed to generate image via FLUX Kontext Pro');
     }
   } catch (err) {
-    let cleanMsg = err.message || 'CatVTON execution error';
+    let cleanMsg = err.message || 'replicate_client execution error';
     try {
-      const jsonMatch = cleanMsg.match(/\{"status":\s*"error".*?\}/s);
+      const jsonMatch = cleanMsg.match(/{"status":\s*"error".*?}/s);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
         cleanMsg = parsed.error || cleanMsg;
       }
     } catch (_) {}
-    // Remove extra backtraces or deprecation noise
     cleanMsg = cleanMsg.split('\n').filter(line => !line.includes('DeprecationWarning')).join(' ').trim();
-    console.warn(`⚠️ CatVTON ${pose} generation skipped: ${cleanMsg}`);
+    console.warn(`⚠️ FLUX Kontext Pro ${pose} generation skipped: ${cleanMsg}`);
     return {
       success: false,
       status: 'failed',
@@ -161,49 +163,47 @@ async function generateOnModelImage(garmentImagePath, stockModelPath, pose, outp
   }
 }
 
-async function generateAllOnModelViews(frontCutoutPath, backCutoutPath, uploadsDir) {
+/**
+ * Run FLUX Kontext Pro for the image slots where the seller selected 'Generate with AI'.
+ * Slots where the seller chose 'upload' are skipped — the original uploaded file is kept.
+ *
+ * @param {string|null} frontCutoutPath - processed front garment image (null → skip)
+ * @param {string|null} backCutoutPath  - processed back garment image  (null → skip)
+ * @param {string}      uploadsDir
+ */
+async function generateSelectedOnModelViews(frontCutoutPath, backCutoutPath, uploadsDir) {
   const timestamp = Date.now();
-  const results = {
-    front: null,
-    back: null,
-    side: null
-  };
+  const results = { front: null, back: null };
 
-  // Run all three Gemini calls in parallel with independent error handling
-  const [frontResult, backResult, sideResult] = await Promise.allSettled([
-    generateOnModelImage(
-      frontCutoutPath,
-      STOCK_MODELS.front,
-      'front',
-      path.join(uploadsDir, `onmodel-front-${timestamp}.jpg`)
-    ),
-    generateOnModelImage(
-      backCutoutPath,
-      STOCK_MODELS.back,
-      'back',
-      path.join(uploadsDir, `onmodel-back-${timestamp}.jpg`)
-    ),
-    generateOnModelImage(
-      frontCutoutPath, // Side uses front cutout as reference
-      STOCK_MODELS.side,
-      'side',
-      path.join(uploadsDir, `onmodel-side-${timestamp}.jpg`)
-    )
-  ]);
+  const tasks = [];
 
-  // Process results independently
-  results.front = frontResult.status === 'fulfilled' && frontResult.value.success
-    ? { status: 'success', path: frontResult.value.path }
-    : { status: 'failed', reason: frontResult.reason || frontResult.value?.reason };
+  if (frontCutoutPath) {
+    tasks.push(
+      generateOnModelImage(
+        frontCutoutPath,
+        'front',
+        path.join(uploadsDir, `onmodel-front-${timestamp}.jpg`)
+      ).then(r => { results.front = r.success ? { status: 'success', path: r.path } : { status: 'failed', reason: r.reason }; })
+       .catch(e => { results.front = { status: 'failed', reason: e.message }; })
+    );
+  } else {
+    results.front = { status: 'skipped' };
+  }
 
-  results.back = backResult.status === 'fulfilled' && backResult.value.success
-    ? { status: 'success', path: backResult.value.path }
-    : { status: 'failed', reason: backResult.reason || backResult.value?.reason };
+  if (backCutoutPath) {
+    tasks.push(
+      generateOnModelImage(
+        backCutoutPath,
+        'back',
+        path.join(uploadsDir, `onmodel-back-${timestamp}.jpg`)
+      ).then(r => { results.back = r.success ? { status: 'success', path: r.path } : { status: 'failed', reason: r.reason }; })
+       .catch(e => { results.back = { status: 'failed', reason: e.message }; })
+    );
+  } else {
+    results.back = { status: 'skipped' };
+  }
 
-  results.side = sideResult.status === 'fulfilled' && sideResult.value.success
-    ? { status: 'success', path: sideResult.value.path }
-    : { status: 'failed', reason: sideResult.reason || sideResult.value?.reason };
-
+  await Promise.all(tasks);
   return results;
 }
 
@@ -322,7 +322,17 @@ async function validateCompliance(imagePath) {
 // MAIN PIPELINE
 // ══════════════════════════════════════════════════════════════════════════════
 
-async function processGarmentCatalog(frontFile, backFile, additionalFiles, priceTagConfirmed, uploadsDir) {
+/**
+ * Main garment catalog pipeline.
+ *
+ * @param {object}   frontFile          - Multer file object for front image
+ * @param {object}   backFile           - Multer file object for back image
+ * @param {object[]} additionalFiles    - Multer file objects for additional images
+ * @param {boolean}  priceTagConfirmed
+ * @param {string}   uploadsDir
+ * @param {object}   [imageModes]       - Per-image mode flags: { front: 'upload'|'ai', back: 'upload'|'ai' }
+ */
+async function processGarmentCatalog(frontFile, backFile, additionalFiles, priceTagConfirmed, uploadsDir, imageModes = {}) {
   // Stage 0: Validation
   const validation = await validateInput(frontFile, backFile, additionalFiles);
   if (!validation.valid) {
@@ -338,51 +348,68 @@ async function processGarmentCatalog(frontFile, backFile, additionalFiles, price
     priceTagConfirmed
   };
 
+  // Determine which slots need AI generation
+  const generateFront = (imageModes.front || 'upload') === 'ai';
+  const generateBack  = (imageModes.back  || 'upload') === 'ai';
+
   try {
-    // Stage 1 & 2: Crop and background removal for front and back
-    const frontCutoutPath = path.join(uploadsDir, `cutout-front-${timestamp}.png`);
-    const backCutoutPath = path.join(uploadsDir, `cutout-back-${timestamp}.png`);
+    let frontCutoutPath = null;
+    let backCutoutPath  = null;
 
-    const [frontCutout, backCutout] = await Promise.all([
-      cropAndRemoveBackground(frontFile.path, frontCutoutPath),
-      cropAndRemoveBackground(backFile.path, backCutoutPath)
-    ]);
+    // Stage 1 & 2: Crop + background removal only for AI-selected slots
+    if (generateFront || generateBack) {
+      const tasks = [];
 
-    // Stage 3: Generate on-model views (3 parallel Gemini calls)
-    const onModelResults = await generateAllOnModelViews(frontCutoutPath, backCutoutPath, uploadsDir);
+      if (generateFront) {
+        const p = path.join(uploadsDir, `cutout-front-${timestamp}.png`);
+        tasks.push(cropAndRemoveBackground(frontFile.path, p).then(() => { frontCutoutPath = p; }));
+      }
+      if (generateBack) {
+        const p = path.join(uploadsDir, `cutout-back-${timestamp}.png`);
+        tasks.push(cropAndRemoveBackground(backFile.path, p).then(() => { backCutoutPath = p; }));
+      }
 
-    // Process front on-model
-    if (onModelResults.front.status === 'success') {
-      result.front.onModel = `/uploads/${path.basename(onModelResults.front.path)}`;
-      result.front.generationStatus = 'success';
-      result.front.complianceReport = await validateCompliance(onModelResults.front.path);
+      await Promise.all(tasks);
+    }
+
+    // Stage 3: FLUX Kontext Pro on-model generation (only for AI slots)
+    const onModelResults = await generateSelectedOnModelViews(
+      generateFront ? frontCutoutPath : null,
+      generateBack  ? backCutoutPath  : null,
+      uploadsDir
+    );
+
+    // Process front result
+    if (generateFront) {
+      if (onModelResults.front.status === 'success') {
+        result.front.onModel = `/uploads/${path.basename(onModelResults.front.path)}`;
+        result.front.generationStatus = 'success';
+        result.front.complianceReport = await validateCompliance(onModelResults.front.path);
+      } else {
+        result.front.generationStatus = onModelResults.front.status;
+        result.front.reason = onModelResults.front.reason;
+        result.front.complianceReport = await validateCompliance(frontFile.path);
+      }
     } else {
-      result.front.generationStatus = onModelResults.front.status;
-      result.front.reason = onModelResults.front.reason;
-      // Still validate original
+      // Seller uploaded their own image — just validate it
+      result.front.generationStatus = 'upload';
       result.front.complianceReport = await validateCompliance(frontFile.path);
     }
 
-    // Process back on-model
-    if (onModelResults.back.status === 'success') {
-      result.back.onModel = `/uploads/${path.basename(onModelResults.back.path)}`;
-      result.back.generationStatus = 'success';
-      result.back.complianceReport = await validateCompliance(onModelResults.back.path);
+    // Process back result
+    if (generateBack) {
+      if (onModelResults.back.status === 'success') {
+        result.back.onModel = `/uploads/${path.basename(onModelResults.back.path)}`;
+        result.back.generationStatus = 'success';
+        result.back.complianceReport = await validateCompliance(onModelResults.back.path);
+      } else {
+        result.back.generationStatus = onModelResults.back.status;
+        result.back.reason = onModelResults.back.reason;
+        result.back.complianceReport = await validateCompliance(backFile.path);
+      }
     } else {
-      result.back.generationStatus = onModelResults.back.status;
-      result.back.reason = onModelResults.back.reason;
-      // Still validate original
+      result.back.generationStatus = 'upload';
       result.back.complianceReport = await validateCompliance(backFile.path);
-    }
-
-    // Process side on-model
-    if (onModelResults.side.status === 'success') {
-      result.side.onModel = `/uploads/${path.basename(onModelResults.side.path)}`;
-      result.side.generationStatus = 'success';
-      result.side.complianceReport = await validateCompliance(onModelResults.side.path);
-    } else {
-      result.side.generationStatus = onModelResults.side.status;
-      result.side.reason = onModelResults.side.reason;
     }
 
     // Stage 4: Validate additional images (pass-through, no generation)

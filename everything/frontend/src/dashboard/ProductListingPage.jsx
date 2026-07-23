@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { createProduct, fetchProducts } from '../api/client';
+import { createProduct, fetchProducts, generateAiImage } from '../api/client';
 import { getSellerId } from '../state/sessionStore';
 import { speak } from '../api/ttsProvider';
 
@@ -45,6 +45,13 @@ export default function ProductListingPage() {
   const [additionalImages, setAdditionalImages] = useState([]);
   const [additionalPreviews, setAdditionalPreviews] = useState([]);
   const [priceTagConfirmed, setPriceTagConfirmed] = useState(false);
+
+  // Per-image AI/upload mode: 'upload' | 'ai'
+  const [frontImageMode, setFrontImageMode] = useState('upload');
+  const [backImageMode, setBackImageMode] = useState('upload');
+  // AI generation loading state per slot
+  const [generatingFront, setGeneratingFront] = useState(false);
+  const [generatingBack, setGeneratingBack] = useState(false);
   
   const [errors, setErrors]     = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -67,6 +74,42 @@ export default function ProductListingPage() {
       .catch(() => {})
       .finally(() => setLoadingProducts(false));
   }, [sellerId]);
+
+  // ── Image slot mode toggle styles ──────────────────────────────────────────
+  function modeToggle(slot, mode, setMode) {
+    const tabs = [
+      { id: 'upload', label: '📁 Upload' },
+      { id: 'ai',     label: '✨ Generate with AI' },
+    ];
+    return (
+      <div style={{ display: 'flex', gap: 0, marginBottom: 10, borderRadius: 10, overflow: 'hidden', border: '1.5px solid var(--myntra-border)', width: 'fit-content' }}>
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            type="button"
+            id={`${slot}-mode-${tab.id}`}
+            onClick={() => setMode(tab.id)}
+            style={{
+              padding: '7px 16px',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              border: 'none',
+              outline: 'none',
+              transition: 'background 0.15s, color 0.15s',
+              background: mode === tab.id
+                ? 'linear-gradient(90deg, var(--myntra-pink), #ff6b9d)'
+                : 'var(--myntra-card)',
+              color: mode === tab.id ? '#fff' : 'var(--myntra-muted)',
+              letterSpacing: '0.02em',
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+    );
+  }
 
   // Image selection handlers
   function handleFrontImageSelect(e) {
@@ -151,6 +194,8 @@ export default function ProductListingPage() {
     formData.append('frontImage', frontImage);
     formData.append('backImage', backImage);
     formData.append('priceTagConfirmed', priceTagConfirmed);
+    formData.append('frontImageMode', frontImageMode);
+    formData.append('backImageMode', backImageMode);
     additionalImages.forEach((img) => formData.append('additionalImages', img));
 
     try {
@@ -162,12 +207,16 @@ export default function ProductListingPage() {
         setCatalogModal(res.product.garmentCatalog);
       }
       
-      // Reset form
-      setName(''); setPrice(''); setCategory(''); setQuantity('');
-      setFrontImage(null); setFrontPreview(null);
-      setBackImage(null); setBackPreview(null);
-      setAdditionalImages([]); setAdditionalPreviews([]);
-      setPriceTagConfirmed(false);
+    // Reset form
+    setName(''); setPrice(''); setCategory(''); setQuantity('');
+    setFrontImage(null); setFrontPreview(null);
+    setBackImage(null); setBackPreview(null);
+    setAdditionalImages([]); setAdditionalPreviews([]);
+    setPriceTagConfirmed(false);
+    setFrontImageMode('upload');
+    setBackImageMode('upload');
+    setGeneratingFront(false);
+    setGeneratingBack(false);
       
       const msg = t('listingSuccess');
       showToast('success', msg);
@@ -291,29 +340,115 @@ export default function ProductListingPage() {
 
             {/* Front Image - Required */}
             <Field label="Front Flat-Lay Photo" required>
-              <div
-                onClick={() => frontInputRef.current?.click()}
-                style={{
-                  border: `2px dashed ${frontImage ? 'var(--myntra-pink)' : errors.frontImage ? 'var(--myntra-error)' : 'var(--myntra-border)'}`,
+              {modeToggle('front', frontImageMode, setFrontImageMode)}
+
+              {/* Upload mode */}
+              {frontImageMode === 'upload' && (
+                <div
+                  onClick={() => frontInputRef.current?.click()}
+                  style={{
+                    border: `2px dashed ${frontImage ? 'var(--myntra-pink)' : errors.frontImage ? 'var(--myntra-error)' : 'var(--myntra-border)'}`,
+                    borderRadius: 12,
+                    padding: '16px',
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    background: frontImage ? 'rgba(255,63,108,0.04)' : 'var(--myntra-card)',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {frontPreview ? (
+                    <img src={frontPreview} alt="front" style={{ maxHeight: 120, borderRadius: 8 }} />
+                  ) : (
+                    <>
+                      <div style={{ fontSize: '1.5rem', marginBottom: 6 }}>📷</div>
+                      <p style={{ fontSize: '0.78rem', color: 'var(--myntra-muted)' }}>
+                        Front garment photo (flat-lay)
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* AI generation mode */}
+              {frontImageMode === 'ai' && (
+                <div style={{
+                  border: '2px dashed var(--myntra-pink)',
                   borderRadius: 12,
                   padding: '16px',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  background: frontImage ? 'rgba(255,63,108,0.04)' : 'var(--myntra-card)',
-                  transition: 'all 0.15s',
+                  background: 'rgba(255,63,108,0.03)',
                 }}
-              >
-                {frontPreview ? (
-                  <img src={frontPreview} alt="front" style={{ maxHeight: 120, borderRadius: 8 }} />
-                ) : (
-                  <>
-                    <div style={{ fontSize: '1.5rem', marginBottom: 6 }}>📷</div>
-                    <p style={{ fontSize: '0.78rem', color: 'var(--myntra-muted)' }}>
-                      Front garment photo (flat-lay)
-                    </p>
-                  </>
-                )}
-              </div>
+                >
+                  <p style={{ fontSize: '0.78rem', color: 'var(--myntra-muted)', marginBottom: 10 }}>
+                    Upload a flat-lay garment photo, then click <strong>Generate with AI</strong> to create an on-model preview image.
+                  </p>
+                  <div
+                    onClick={() => frontInputRef.current?.click()}
+                    style={{
+                      border: `1.5px dashed ${frontImage ? 'var(--myntra-pink)' : 'var(--myntra-border)'}`,
+                      borderRadius: 10,
+                      padding: '12px',
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      background: frontImage ? 'rgba(255,63,108,0.06)' : 'var(--myntra-card)',
+                      marginBottom: 12,
+                    }}
+                  >
+                    {frontPreview ? (
+                      <img src={frontPreview} alt="front garment" style={{ maxHeight: 120, borderRadius: 8 }} />
+                    ) : (
+                      <>
+                        <div style={{ fontSize: '1.3rem', marginBottom: 4 }}>🧥</div>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--myntra-muted)' }}>Upload garment flat-lay photo</p>
+                      </>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={!frontImage || generatingFront}
+                    onClick={async () => {
+                      if (!frontImage) return;
+                      setGeneratingFront(true);
+                      try {
+                        const res = await generateAiImage(frontImage, 'front');
+                        setFrontPreview(res.imageUrl);
+                        showToast('success', 'Front on-model image generated successfully!');
+                      } catch (err) {
+                        showToast('error', err.message || 'AI Generation failed');
+                      } finally {
+                        setGeneratingFront(false);
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 0',
+                      borderRadius: 8,
+                      border: 'none',
+                      background: frontImage && !generatingFront
+                        ? 'linear-gradient(90deg, var(--myntra-pink), #ff6b9d)'
+                        : 'var(--myntra-border)',
+                      color: '#fff',
+                      fontWeight: 700,
+                      fontSize: '0.82rem',
+                      cursor: frontImage && !generatingFront ? 'pointer' : 'not-allowed',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    {generatingFront ? (
+                      <>
+                        <span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                        Generating on-model image with FLUX…
+                      </>
+                    ) : (
+                      '✨ Generate Front On-Model Image'
+                    )}
+                  </button>
+                </div>
+              )}
+
               <input
                 ref={frontInputRef}
                 type="file"
@@ -326,29 +461,115 @@ export default function ProductListingPage() {
 
             {/* Back Image - Required */}
             <Field label="Back Flat-Lay Photo" required>
-              <div
-                onClick={() => backInputRef.current?.click()}
-                style={{
-                  border: `2px dashed ${backImage ? 'var(--myntra-pink)' : errors.backImage ? 'var(--myntra-error)' : 'var(--myntra-border)'}`,
+              {modeToggle('back', backImageMode, setBackImageMode)}
+
+              {/* Upload mode */}
+              {backImageMode === 'upload' && (
+                <div
+                  onClick={() => backInputRef.current?.click()}
+                  style={{
+                    border: `2px dashed ${backImage ? 'var(--myntra-pink)' : errors.backImage ? 'var(--myntra-error)' : 'var(--myntra-border)'}`,
+                    borderRadius: 12,
+                    padding: '16px',
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    background: backImage ? 'rgba(255,63,108,0.04)' : 'var(--myntra-card)',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {backPreview ? (
+                    <img src={backPreview} alt="back" style={{ maxHeight: 120, borderRadius: 8 }} />
+                  ) : (
+                    <>
+                      <div style={{ fontSize: '1.5rem', marginBottom: 6 }}>📷</div>
+                      <p style={{ fontSize: '0.78rem', color: 'var(--myntra-muted)' }}>
+                        Back garment photo (flat-lay)
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* AI generation mode */}
+              {backImageMode === 'ai' && (
+                <div style={{
+                  border: '2px dashed var(--myntra-pink)',
                   borderRadius: 12,
                   padding: '16px',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  background: backImage ? 'rgba(255,63,108,0.04)' : 'var(--myntra-card)',
-                  transition: 'all 0.15s',
+                  background: 'rgba(255,63,108,0.03)',
                 }}
-              >
-                {backPreview ? (
-                  <img src={backPreview} alt="back" style={{ maxHeight: 120, borderRadius: 8 }} />
-                ) : (
-                  <>
-                    <div style={{ fontSize: '1.5rem', marginBottom: 6 }}>📷</div>
-                    <p style={{ fontSize: '0.78rem', color: 'var(--myntra-muted)' }}>
-                      Back garment photo (flat-lay)
-                    </p>
-                  </>
-                )}
-              </div>
+                >
+                  <p style={{ fontSize: '0.78rem', color: 'var(--myntra-muted)', marginBottom: 10 }}>
+                    Upload a flat-lay garment photo, then click <strong>Generate with AI</strong> to create an on-model preview image.
+                  </p>
+                  <div
+                    onClick={() => backInputRef.current?.click()}
+                    style={{
+                      border: `1.5px dashed ${backImage ? 'var(--myntra-pink)' : 'var(--myntra-border)'}`,
+                      borderRadius: 10,
+                      padding: '12px',
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      background: backImage ? 'rgba(255,63,108,0.06)' : 'var(--myntra-card)',
+                      marginBottom: 12,
+                    }}
+                  >
+                    {backPreview ? (
+                      <img src={backPreview} alt="back garment" style={{ maxHeight: 120, borderRadius: 8 }} />
+                    ) : (
+                      <>
+                        <div style={{ fontSize: '1.3rem', marginBottom: 4 }}>🧥</div>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--myntra-muted)' }}>Upload garment flat-lay photo</p>
+                      </>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={!backImage || generatingBack}
+                    onClick={async () => {
+                      if (!backImage) return;
+                      setGeneratingBack(true);
+                      try {
+                        const res = await generateAiImage(backImage, 'back');
+                        setBackPreview(res.imageUrl);
+                        showToast('success', 'Back on-model image generated successfully!');
+                      } catch (err) {
+                        showToast('error', err.message || 'AI Generation failed');
+                      } finally {
+                        setGeneratingBack(false);
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 0',
+                      borderRadius: 8,
+                      border: 'none',
+                      background: backImage && !generatingBack
+                        ? 'linear-gradient(90deg, var(--myntra-pink), #ff6b9d)'
+                        : 'var(--myntra-border)',
+                      color: '#fff',
+                      fontWeight: 700,
+                      fontSize: '0.82rem',
+                      cursor: backImage && !generatingBack ? 'pointer' : 'not-allowed',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    {generatingBack ? (
+                      <>
+                        <span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                        Generating on-model image with FLUX…
+                      </>
+                    ) : (
+                      '✨ Generate Back On-Model Image'
+                    )}
+                  </button>
+                </div>
+              )}
+
               <input
                 ref={backInputRef}
                 type="file"
@@ -486,9 +707,11 @@ export default function ProductListingPage() {
                     <img
                       src={p.images[0]}
                       alt={p.name}
+                      onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                       style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 10, border: '1px solid var(--myntra-border)', flexShrink: 0 }}
                     />
-                  ) : (
+                  ) : null}
+                  {(!p.images?.[0]) && (
                     <div style={{ width: 56, height: 56, borderRadius: 10, background: 'var(--myntra-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0, border: '1px solid var(--myntra-border)' }}>
                       📦
                     </div>

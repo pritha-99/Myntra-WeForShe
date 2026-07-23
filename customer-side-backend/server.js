@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const mongoose = require('mongoose');
 
 const customerRouter = require('./routes/customer');
@@ -19,6 +20,12 @@ mongoose.connect(MONGODB_URI)
 // ── Middleware ──────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
+
+// ── Serve product images uploaded by the main backend ──────────────────────
+// Images stored in everything/backend/uploads/ are served as /uploads/* here
+// so customers can see product photos without cross-origin issues.
+const uploadsPath = path.join(__dirname, '../everything/backend/uploads');
+app.use('/uploads', express.static(uploadsPath));
 
 // ── Routes ──────────────────────────────────────────────────────────────────
 app.use('/api/customer', customerRouter);

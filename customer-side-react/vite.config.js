@@ -12,6 +12,11 @@ export default defineConfig({
         target: 'http://localhost:4001',
         changeOrigin: true,
       },
+      // Forward /uploads requests directly to the main backend which owns the files
+      '/uploads': {
+        target: 'http://localhost:4000',
+        changeOrigin: true,
+      },
     },
   },
 })

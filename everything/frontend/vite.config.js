@@ -15,6 +15,11 @@ export default defineConfig({
         target: 'http://localhost:4000',
         changeOrigin: true,
       },
+      // Proxy /uploads so product images load in the dashboard without needing absolute URLs
+      '/uploads': {
+        target: 'http://localhost:4000',
+        changeOrigin: true,
+      },
     },
   },
 })

@@ -200,6 +200,25 @@ export async function createProduct(formData) {
 }
 
 /**
+ * POST /api/products/generate-ai — trigger single garment AI on-model generation.
+ * Accepts File object and pose ('front'|'back'). Returns { imageUrl }.
+ */
+export async function generateAiImage(file, pose = 'front') {
+  const formData = new FormData();
+  formData.append('image', file);
+  formData.append('pose', pose);
+  const res = await fetch(`${BASE}/products/generate-ai`, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: 'Network error' }));
+    throw new Error(err.error || err.message || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+/**
  * GET /api/products/:sellerId — list all products for a seller.
  * Returns { products: [] }
  */

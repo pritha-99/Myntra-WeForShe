@@ -12,7 +12,8 @@ export default function ProductCard({ product }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const icon = CATEGORY_ICONS[product.category] || '🛍️';
   const hasImage = product.images && product.images.length > 0;
-  const imgSrc = hasImage ? `http://localhost:4000${product.images[0]}` : null;
+  // Use relative URL — /uploads/* is proxied through Vite to the main backend (localhost:4000)
+  const imgSrc = hasImage ? product.images[0] : null;
   const price = product.price || 0;
   const originalPrice = Math.round(price * 1.35); // Simulated original price for discount display
   const discountPercent = 35;

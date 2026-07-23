@@ -30,6 +30,56 @@ const upload = multer({
 });
 
 /**
+ * POST /api/products/generate-ai
+ * Standalone endpoint to generate an on-model preview for a single garment image using FLUX Kontext Pro.
+ * Accepts multipart/form-data with fields:
+ *   - image (required)
+ *   - pose ('front' | 'back', default 'front')
+ */
+router.post('/generate-ai', upload.single('image'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Garment image is required for AI generation.' });
+  }
+  const pose = req.body.pose || 'front';
+  const timestamp = Date.now();
+  const uploadsDir = path.join(__dirname, '../../uploads');
+  const outputPath = path.join(uploadsDir, `onmodel-${pose}-${timestamp}.jpg`);
+
+  const { execFile } = require('child_process');
+  const util = require('util');
+  const execFileAsync = util.promisify(execFile);
+  const scriptPath = path.join(__dirname, '../services/replicate_client.py');
+
+  try {
+    const args = [
+      scriptPath,
+      '--garment', req.file.path,
+      '--output', outputPath,
+      '--pose', pose,
+    ];
+
+    const { stdout } = await execFileAsync('python3', args, { timeout: 180000 });
+    let resultJson;
+    try {
+      resultJson = JSON.parse(stdout.trim());
+    } catch (e) {
+      const match = stdout.match(/{"status":.*}/);
+      resultJson = match ? JSON.parse(match[0]) : null;
+    }
+
+    if (resultJson && resultJson.status === 'success') {
+      const imageUrl = `/uploads/${path.basename(outputPath)}`;
+      return res.json({ imageUrl });
+    } else {
+      return res.status(500).json({ error: resultJson?.error || 'AI generation failed.' });
+    }
+  } catch (err) {
+    console.error('Standalone AI generation error:', err);
+    return res.status(500).json({ error: err.message || 'Failed to generate AI image.' });
+  }
+});
+
+/**
  * POST /api/products
  * Create a new product listing for a seller.
  * Accepts multipart/form-data for image uploads.
@@ -48,7 +98,7 @@ router.post('/', upload.fields([
   { name: 'additionalImages', maxCount: 5 },
   { name: 'images', maxCount: 10 } // Backward compatibility
 ]), async (req, res) => {
-  const { sellerId, name, price, category, quantity, priceTagConfirmed } = req.body;
+  const { sellerId, name, price, category, quantity, priceTagConfirmed, frontImageMode, backImageMode } = req.body;
 
   if (!sellerId || !name || price === undefined || !category || quantity === undefined) {
     return res.status(400).json({ error: 'Missing required fields.' });
@@ -77,12 +127,17 @@ router.post('/', upload.fields([
       // NEW FLOW: Automated garment catalog generation
       try {
         const uploadsDir = path.join(__dirname, '../../uploads');
+        const imageModes = {
+          front: frontImageMode || 'upload',
+          back: backImageMode || 'upload',
+        };
         garmentCatalog = await processGarmentCatalog(
           frontImage,
           backImage,
           additionalImages,
           priceTagConfirmed === 'true',
-          uploadsDir
+          uploadsDir,
+          imageModes
         );
         
         // Collect all successfully generated images for the main images array

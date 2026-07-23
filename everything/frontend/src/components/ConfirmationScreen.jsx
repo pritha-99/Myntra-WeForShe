@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { submitSeller } from '../api/client';
 import { getState } from '../state/sessionStore';
@@ -11,8 +11,14 @@ export default function ConfirmationScreen({ lang, t }) {
   const [submitted, setSubmitted] = useState(false);
   const [sellerId, setLocalSellerId] = useState(null);
   const [error, setError] = useState(false);
+  // Guard against React 18 Strict Mode double-invoking this effect in dev.
+  const hasSubmittedRef = useRef(false);
 
   useEffect(() => {
+    // If the effect was already triggered (Strict Mode remount), bail out.
+    if (hasSubmittedRef.current) return;
+    hasSubmittedRef.current = true;
+
     async function doSubmit() {
       setSubmitting(true);
       const { answers, language } = getState();

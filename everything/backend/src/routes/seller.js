@@ -38,11 +38,26 @@ router.post('/submit', async (req, res) => {
     apobNeeded,
   } = req.body;
 
-  // Generate a human-friendly seller ID: SLR-<random 6 chars>
-  const randomPart = Math.random().toString(36).toUpperCase().slice(2, 8);
-  const sellerId = `SLR-${randomPart}`;
-
+  // Guard against double-submission: check if a seller with the same email or
+  // GSTIN already exists (handles React Strict Mode double-render and network retries).
   try {
+    const dedupeQuery = [];
+    if (email) dedupeQuery.push({ email });
+    if (gstin) dedupeQuery.push({ gstin });
+
+    if (dedupeQuery.length > 0) {
+      const existing = await Seller.findOne({ $or: dedupeQuery });
+      if (existing) {
+        // Return the existing sellerId so the frontend session is set correctly.
+        console.log(`[seller/submit] Duplicate detected for email=${email} gstin=${gstin} — returning existing sellerId ${existing.sellerId}`);
+        return res.status(200).json({ sellerId: existing.sellerId });
+      }
+    }
+
+    // Generate a human-friendly seller ID: SLR-<random 6 chars>
+    const randomPart = Math.random().toString(36).toUpperCase().slice(2, 8);
+    const sellerId = `SLR-${randomPart}`;
+
     const seller = new Seller({
       sellerId,
       language,
