@@ -1,8 +1,12 @@
 /**
- * ProgressBar — shows current step out of total.
- * Props: current (0-indexed), total
+ * ProgressBar — shows current section out of total sections.
+ * Props: current (0-indexed question index), total (total questions), currentSection (0-indexed), totalSections
  */
-export default function ProgressBar({ current, total }) {
+export default function ProgressBar({ current, total, currentSection, totalSections }) {
+  // If section info is provided, use it; otherwise fall back to question-based progress
+  const useSection = (currentSection !== undefined && totalSections !== undefined);
+  const displayCurrent = useSection ? currentSection + 1 : current + 1;
+  const displayTotal = useSection ? totalSections : total;
   const pct = total > 0 ? ((current + 1) / total) * 100 : 0;
 
   return (
@@ -11,7 +15,7 @@ export default function ProgressBar({ current, total }) {
         display: 'flex', justifyContent: 'space-between',
         marginBottom: 8, fontSize: '0.78rem', color: 'var(--myntra-muted)',
       }}>
-        <span>Step {current + 1} of {total}</span>
+        <span>Section {displayCurrent} of {displayTotal}</span>
         <span>{Math.round(pct)}%</span>
       </div>
       <div style={{

@@ -13,6 +13,7 @@ import ProductListingPage from './dashboard/ProductListingPage';
 import MyStoryPage from './dashboard/MyStoryPage';
 import ComingSoonPage from './dashboard/ComingSoonPage';
 import LandingPage from './LandingPage';
+import MyntraLogo from './components/MyntraLogo';
 
 import en from './i18n/en.json';
 import ta from './i18n/ta.json';
@@ -38,7 +39,10 @@ function OnboardingApp() {
   const [done, setDone] = useState(false);
   const [declarationText, setDeclarationText] = useState('');
   const [showWarnings, setShowWarnings] = useState(false);
-  const [lightMode, setLightMode] = useState(() => localStorage.getItem('bharat_theme') === 'light');
+  const [lightMode, setLightMode] = useState(() => {
+    const saved = localStorage.getItem('bharat_theme');
+    return saved ? saved === 'light' : true; // Default to light
+  });
   const [audioMuted, setAudioMuted] = useState(() => isMuted());
   const [expandedSections, setExpandedSections] = useState(() => {
     // Initially expand the current section
@@ -161,31 +165,28 @@ function OnboardingApp() {
       {/* Top header */}
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', height: 64, flexShrink: 0, borderBottom: '1px solid var(--myntra-border)', background: 'var(--myntra-surface)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg, var(--myntra-pink), #ff7eb3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 900, color: '#fff', flexShrink: 0 }}>M</div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--myntra-text)', lineHeight: 1.2 }}>Bharat Onboarding</div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--myntra-muted)' }}>Myntra Seller Registration</div>
-          </div>
+          <MyntraLogo subtitle="PARTNER PORTAL" height={38} />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <select
+            value={lang}
+            onChange={(e) => handleLanguageChange(e.target.value)}
+            style={{
+              padding: '8px 12px', borderRadius: 6, fontSize: '0.82rem', fontWeight: 600,
+              border: '1.5px solid var(--myntra-border)',
+              background: 'var(--myntra-surface)',
+              color: 'var(--myntra-text)',
+              cursor: 'pointer', transition: 'all 0.18s ease',
+              outline: 'none',
+            }}
+          >
             {LANGUAGES.map((l) => (
-              <button
-                key={l.code}
-                onClick={() => handleLanguageChange(l.code)}
-                style={{
-                  padding: '6px 16px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 600,
-                  border: `1.5px solid ${lang === l.code ? 'var(--myntra-pink)' : 'var(--myntra-border)'}`,
-                  background: lang === l.code ? 'rgba(255,63,108,0.15)' : 'transparent',
-                  color: lang === l.code ? 'var(--myntra-pink)' : 'var(--myntra-muted)',
-                  cursor: 'pointer', transition: 'all 0.18s ease',
-                }}
-              >
+              <option key={l.code} value={l.code}>
                 {l.label}
-              </button>
+              </option>
             ))}
-          </div>
+          </select>
 
           {/* Audio mute toggle */}
           <button
@@ -418,6 +419,8 @@ function OnboardingApp() {
                 onNext={handleNext}
                 declarationText={declarationText}
                 onGoTo={handleGoTo}
+                currentSection={currentSidebarIdx}
+                totalSections={SIDEBAR_ENTRIES.length}
               />
             </div>
           </div>

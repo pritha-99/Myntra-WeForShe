@@ -31,7 +31,22 @@ const NAV_ITEMS = [
 export default function DashboardLayout({ initialLang = 'en' }) {
   const [lang, setLang] = useState(initialLang);
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [lightMode, setLightMode] = useState(() => {
+    const saved = localStorage.getItem('bharat_theme');
+    return saved ? saved === 'light' : true; // Default to light
+  });
   const navigate = useNavigate();
+
+  // Apply theme
+  useEffect(() => {
+    if (lightMode) {
+      document.body.classList.add('light-mode');
+      localStorage.setItem('bharat_theme', 'light');
+    } else {
+      document.body.classList.remove('light-mode');
+      localStorage.setItem('bharat_theme', 'dark');
+    }
+  }, [lightMode]);
 
   // ── Auth guard: redirect to landing if not logged in ──
   useEffect(() => {
@@ -78,11 +93,12 @@ export default function DashboardLayout({ initialLang = 'en' }) {
           padding: '0 24px',
           zIndex: 100,
           boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          gap: 16,
         }}
       >
         {/* Brand Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>
-          <MyntraLogo subtitle="SELLER PORTAL" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', flexShrink: 0 }} onClick={() => navigate('/dashboard')}>
+          <MyntraLogo subtitle="PARTNER PORTAL" />
         </div>
 
         {/* Horizontal nav tabs */}
@@ -93,6 +109,13 @@ export default function DashboardLayout({ initialLang = 'en' }) {
             flex: 1,
             justifyContent: 'center',
             overflowX: 'auto',
+            maxWidth: '100%',
+            minWidth: 0,
+            paddingBottom: 4,
+            paddingLeft: 12,
+            paddingRight: 12,
+            marginLeft: -4,
+            marginRight: -4,
           }}
         >
           {NAV_ITEMS.map((item) => (
@@ -179,27 +202,40 @@ export default function DashboardLayout({ initialLang = 'en' }) {
           ))}
         </nav>
 
-        {/* Language toggle + Logout */}
+        {/* Language dropdown + Theme toggle + Logout */}
         <div style={{ display: 'flex', gap: 6, flexShrink: 0, alignItems: 'center' }}>
-          {LANGUAGES.map((l) => (
-            <button
-              key={l.code}
-              onClick={() => setLang(l.code)}
-              style={{
-                padding: '5px 12px',
-                borderRadius: 4,
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                border: `1px solid ${lang === l.code ? 'var(--myntra-pink)' : 'var(--myntra-border)'}`,
-                background: lang === l.code ? 'var(--myntra-pink)' : 'transparent',
-                color: lang === l.code ? '#ffffff' : 'var(--myntra-text)',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-              }}
-            >
-              {l.label}
-            </button>
-          ))}
+          <select
+            value={lang}
+            onChange={(e) => setLang(e.target.value)}
+            style={{
+              padding: '6px 12px', borderRadius: 4, fontSize: '0.75rem', fontWeight: 700,
+              border: '1px solid var(--myntra-border)',
+              background: 'var(--myntra-surface)',
+              color: 'var(--myntra-text)',
+              cursor: 'pointer', transition: 'all 0.15s',
+              outline: 'none',
+            }}
+          >
+            {LANGUAGES.map((l) => (
+              <option key={l.code} value={l.code}>
+                {l.label}
+              </option>
+            ))}
+          </select>
+
+          {/* Theme toggle */}
+          <div
+            style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
+            onClick={() => setLightMode(m => !m)}
+            title={lightMode ? 'Switch to dark mode' : 'Switch to light mode'}
+          >
+            <span style={{ fontSize: '0.78rem', color: 'var(--myntra-muted)', userSelect: 'none' }}>
+              {lightMode ? '☀️' : '🌙'}
+            </span>
+            <div className={`theme-toggle${lightMode ? ' light' : ''}`}>
+              <div className="toggle-knob" />
+            </div>
+          </div>
 
           {/* Seller greeting */}
           <div style={{

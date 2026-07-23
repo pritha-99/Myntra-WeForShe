@@ -43,7 +43,7 @@ const REQUIRED_MSG = {
   hi: 'जारी रखने से पहले एक उत्तर दें।',
 };
 
-export default function QuestionScreen({ entry, currentIndex, total, language, t, onNext, declarationText, onGoTo }) {
+export default function QuestionScreen({ entry, currentIndex, total, language, t, onNext, declarationText, onGoTo, currentSection, totalSections }) {
   const [inputValue, setInputValue] = useState(() => {
     const s = getState();
     return s.answers[entry.id] || (entry.inputType === 'tile_group_multi' ? [] : '');
@@ -124,7 +124,7 @@ export default function QuestionScreen({ entry, currentIndex, total, language, t
     }}>
       {/* Top bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <ProgressBar current={currentIndex} total={total} />
+        <ProgressBar current={currentIndex} total={total} currentSection={currentSection} totalSections={totalSections} />
         <div style={{ display: 'flex', gap: 8, marginLeft: 16, flexShrink: 0 }}>
           <SupportCallButton t={t} />
         </div>

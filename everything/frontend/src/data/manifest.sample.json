@@ -139,9 +139,9 @@
     "section": "Part 1 — Registration",
     "order": 9,
     "questionText": {
-      "en": "Registration complete! Here is everything you entered. Ready to continue?",
-      "ta": "பதிவு முடிந்தது! நீங்கள் உள்ளிட்டவை இவை. தொடர தயாரா?",
-      "hi": "पंजीकरण पूरा हुआ! यहाँ सब कुछ है जो आपने दर्ज किया। जारी रखने के लिए तैयार हैं?"
+      "en": "Initial registration complete! Here is everything you entered. Ready to continue?",
+      "ta": "ஆரம்ப பதிவு முடிந்தது! நீங்கள் உள்ளிட்டவை இவை. தொடர தயாரா?",
+      "hi": "प्रारंभिक पंजीकरण पूरा हुआ! यहाँ सब कुछ है जो आपने दर्ज किया। जारी रखने के लिए तैयार हैं?"
     },
     "inputType": "confirm_readonly",
     "inputConfig": {
@@ -614,7 +614,8 @@
         { "value": "accessories", "en": "Accessories", "ta": "பாகங்கள்", "hi": "सामान" },
         { "value": "beauty", "en": "Beauty", "ta": "அழகு", "hi": "सुंदरता" },
         { "value": "home_furnishings", "en": "Home Furnishings and accessories", "ta": "வீட்டு அலங்காரம் மற்றும் பாகங்கள்", "hi": "होम फर्निशिंग और सामान" },
-        { "value": "footwear", "en": "Footwear", "ta": "காலணி", "hi": "जूते" }
+        { "value": "footwear", "en": "Footwear", "ta": "காலணி", "hi": "जूते" },
+        { "value": "none", "en": "None of these", "ta": "இவை எதுவும் இல்லை", "hi": "इनमें से कोई नहीं" }
       ]
     },
     "validationType": "non_empty",
@@ -639,7 +640,8 @@
         { "value": "amazon", "en": "Amazon", "ta": "Amazon", "hi": "Amazon" },
         { "value": "meesho", "en": "Meesho", "ta": "Meesho", "hi": "Meesho" },
         { "value": "flipkart", "en": "Flipkart", "ta": "Flipkart", "hi": "Flipkart" },
-        { "value": "own_shop", "en": "Own Shop", "ta": "சொந்த கடை", "hi": "अपनी दुकान", "requiresInput": true }
+        { "value": "own_shop", "en": "Own Shop", "ta": "சொந்த கடை", "hi": "अपनी दुकान", "requiresInput": true },
+        { "value": "none", "en": "None", "ta": "இல்லை", "hi": "कोई नहीं" }
       ]
     },
     "validationType": null,

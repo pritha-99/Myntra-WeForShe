@@ -59,7 +59,7 @@ export default function TimePicker({ entry, value, onChange, onSubmit, t }) {
       <button 
         className="tile-btn primary" 
         disabled={!isComplete}
-        onClick={() => { onChange(builtValue); onSubmit(); }}
+        onClick={() => { onChange(builtValue); onSubmit(builtValue); }}
       >
         {t('next')}
       </button>

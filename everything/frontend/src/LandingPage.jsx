@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginSeller } from './api/client';
+import MyntraLogo from './components/MyntraLogo';
 
 /* ─────────────────────────────────────────────────────────────────
    LandingPage — Myntra Seller Portal entry page
@@ -74,16 +75,7 @@ export default function LandingPage() {
       }}>
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{
-            width: 40, height: 40, borderRadius: 10,
-            background: 'linear-gradient(135deg, #FF3F6C 0%, #FF7EB3 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '1.3rem', fontWeight: 900, color: '#fff', flexShrink: 0,
-          }}>M</div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#282C3F', lineHeight: 1.1 }}>myntra</div>
-            <div style={{ fontSize: '0.62rem', color: '#FF3F6C', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Seller Portal</div>
-          </div>
+          <MyntraLogo subtitle="PARTNER PORTAL" height={40} />
         </div>
 
         {/* Nav links */}
@@ -405,13 +397,9 @@ export default function LandingPage() {
 
             {/* Modal header */}
             <div style={{ textAlign: 'center', marginBottom: 28 }}>
-              <div style={{
-                width: 52, height: 52, borderRadius: 14,
-                background: 'linear-gradient(135deg, #FF3F6C, #7B2FBE)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '1.5rem', fontWeight: 900, color: '#fff',
-                margin: '0 auto 16px',
-              }}>M</div>
+              <div style={{ margin: '0 auto 16px', display: 'flex', justifyContent: 'center' }}>
+                <MyntraLogo height={52} />
+              </div>
               <h2 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#282C3F', margin: 0 }}>
                 Partner Login
               </h2>
