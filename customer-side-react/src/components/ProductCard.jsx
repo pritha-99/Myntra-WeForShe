@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const CATEGORY_ICONS = {
   'Sarees': '🥻',
@@ -9,6 +10,7 @@ const CATEGORY_ICONS = {
 };
 
 export default function ProductCard({ product }) {
+  const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const icon = CATEGORY_ICONS[product.category] || '🛍️';
   const hasImage = product.images && product.images.length > 0;
@@ -18,10 +20,17 @@ export default function ProductCard({ product }) {
   const originalPrice = Math.round(price * 1.35); // Simulated original price for discount display
   const discountPercent = 35;
 
+  const handleCardClick = () => {
+    if (product._id) {
+      navigate(`/product/${product._id}`);
+    }
+  };
+
   return (
     <div
       id={`product-card-${product._id}`}
-      className="group bg-white rounded-md transition-all duration-300 hover:shadow-md overflow-hidden border border-[#eaeaec] flex flex-col justify-between"
+      onClick={handleCardClick}
+      className="group bg-white rounded-md transition-all duration-300 hover:shadow-lg overflow-hidden border border-[#eaeaec] flex flex-col justify-between cursor-pointer"
     >
       {/* Product Image & Overlays */}
       <div>
@@ -41,7 +50,10 @@ export default function ProductCard({ product }) {
 
           {/* Wishlist Button */}
           <button
-            onClick={() => setIsWishlisted(!isWishlisted)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsWishlisted(!isWishlisted);
+            }}
             className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 shadow-sm flex items-center justify-center text-[#282c3f] hover:text-[#ff3f6c] transition-colors cursor-pointer"
             aria-label="Wishlist"
           >
@@ -107,6 +119,10 @@ export default function ProductCard({ product }) {
       <div className="px-3.5 pb-3.5 pt-1">
         <button
           disabled={product.quantity === 0}
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/product/${product._id}`);
+          }}
           className="w-full bg-[#ff3f6c] hover:bg-[#e73961] text-white text-xs font-bold py-2.5 rounded-xs tracking-wider uppercase transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.99] flex items-center justify-center gap-1.5"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">

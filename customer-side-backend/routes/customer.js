@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Seller = require('../models/Seller');
 const Product = require('../models/Product');
+const Story = require('../models/Story');
+
 
 /**
  * GET /api/customer/sellers-grouped
@@ -90,4 +92,54 @@ router.get('/sellers/:sellerId/products', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/customer/products/:productId
+ * Returns a single product by ID along with seller details.
+ */
+router.get('/products/:productId', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.productId).lean();
+    if (!product) return res.status(404).json({ error: 'Product not found.' });
+
+    const seller = await Seller.findOne({ sellerId: product.sellerId })
+      .select('sellerId brandName brandUsp categoryTypes avgSellingPrice avgMrp ecoTags state warehouse founderFirstName founderLastName companyName')
+      .lean();
+
+    return res.json({
+      product,
+      seller: seller ? {
+        sellerId:        seller.sellerId,
+        brandName:       seller.brandName,
+        brandUsp:        seller.brandUsp,
+        categoryTypes:   seller.categoryTypes || [],
+        state:           seller.state,
+        city:            seller.warehouse?.address || '',
+        founderName:     `${seller.founderFirstName || ''} ${seller.founderLastName || ''}`.trim(),
+      } : null
+    });
+  } catch (err) {
+    console.error('product detail error:', err.message);
+    return res.status(500).json({ error: 'Failed to fetch product detail.' });
+  }
+});
+
+/**
+ * GET /api/customer/sellers/:sellerId/story
+ * Returns story for given seller.
+ */
+router.get('/sellers/:sellerId/story', async (req, res) => {
+  try {
+    const story = await Story.findOne({
+      $or: [{ sellerId: req.params.sellerId }, { gstin: req.params.sellerId }]
+    }).lean();
+
+    return res.json({ story: story || null });
+  } catch (err) {
+    console.error('seller story error:', err.message);
+    return res.status(500).json({ error: 'Failed to fetch seller story.' });
+  }
+});
+
 module.exports = router;
+
+

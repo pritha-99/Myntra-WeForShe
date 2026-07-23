@@ -151,6 +151,103 @@ router.post('/login', async (req, res) => {
   }
 });
 
+const multer = require('multer');
+const path = require('path');
+const Story = require('../models/Story');
+
+// Storage config for story image uploads
+const storyStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, '../../uploads'));
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    const ext = path.extname(file.originalname);
+    cb(null, `story-${uniqueSuffix}${ext}`);
+  },
+});
+
+const storyUpload = multer({
+  storage: storyStorage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = /jpeg|jpg|png|webp|gif/;
+    const ok = allowed.test(path.extname(file.originalname).toLowerCase())
+                && allowed.test(file.mimetype);
+    if (ok) cb(null, true);
+    else cb(new Error('Only image files are allowed.'));
+  },
+});
+
+/**
+ * POST /api/seller/story/upload
+ * Upload story images (up to 5)
+ */
+router.post('/story/upload', storyUpload.array('images', 5), (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'No image files provided.' });
+    }
+    const fileUrls = req.files.map(f => `/uploads/${f.filename}`);
+    return res.json({ urls: fileUrls });
+  } catch (err) {
+    console.error('Story upload error:', err.message);
+    return res.status(500).json({ error: 'Failed to upload story images.' });
+  }
+});
+
+/**
+ * GET /api/seller/story/:sellerId
+ * Fetch story for given seller
+ */
+router.get('/story/:sellerId', async (req, res) => {
+  try {
+    const story = await Story.findOne({ 
+      $or: [{ sellerId: req.params.sellerId }, { gstin: req.params.sellerId }] 
+    }).lean();
+    return res.json({ story: story || null });
+  } catch (err) {
+    console.error('Fetch story error:', err.message);
+    return res.status(500).json({ error: 'Failed to fetch story.' });
+  }
+});
+
+/**
+ * POST /api/seller/story
+ * Save or update story for seller
+ */
+router.post('/story', async (req, res) => {
+  try {
+    const { sellerId, gstin, title, description, images } = req.body;
+    if (!sellerId) {
+      return res.status(400).json({ error: 'sellerId is required.' });
+    }
+    if (!description || !description.trim()) {
+      return res.status(400).json({ error: 'Story description is required.' });
+    }
+    if (Array.isArray(images) && images.length > 5) {
+      return res.status(400).json({ error: 'Maximum 5 images allowed for My Story.' });
+    }
+
+    const story = await Story.findOneAndUpdate(
+      { $or: [{ sellerId }, { gstin: gstin || sellerId }] },
+      {
+        sellerId,
+        gstin: gstin || sellerId,
+        title: title || 'My Craft Story',
+        description: description.trim(),
+        images: images || [],
+      },
+      { new: true, upsert: true, runValidators: true }
+    );
+
+    return res.json({ message: 'Story saved successfully', story });
+  } catch (err) {
+    console.error('Save story error:', err.message);
+    return res.status(500).json({ error: err.message || 'Failed to save story.' });
+  }
+});
+
 /**
  * GET /api/seller/:sellerId
  * Fetch a single seller record (used by dashboard to greet the seller).
@@ -173,3 +270,4 @@ router.get('/:sellerId', async (req, res) => {
 });
 
 module.exports = router;
+

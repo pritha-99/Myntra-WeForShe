@@ -19,3 +19,10 @@ export async function fetchSellerProducts(sellerId) {
   if (!res.ok) throw new Error('Failed to fetch products');
   return res.json();
 }
+
+export async function fetchProductDetail(productId) {
+  const res = await fetch(`${BASE_URL}/api/customer/products/${productId}`);
+  if (!res.ok) throw new Error('Product not found');
+  return res.json();
+}
+

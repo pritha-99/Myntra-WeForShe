@@ -1,240 +1,199 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 /**
- * StoreStoryModal - Bottom sheet modal showing artisan story
- * Slides up from bottom with artisan story and "View Catalogue" button
+ * StoreStoryModal - Short story slideshow modal when a seller is chosen.
+ * Features 5-or-less image slideshow with description, top story progress bars,
+ * and a prominent "Skip" button at the bottom right landing on the seller's page.
  */
 export default function StoreStoryModal({ seller, onClose, onViewCatalogue }) {
+  const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
+  const [story, setStory] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeSlide, setActiveSlide] = useState(0);
 
+  const sellerId = seller?.sellerId;
+
+  // Fetch story from backend
   useEffect(() => {
-    // Trigger animation after mount
     setTimeout(() => setIsVisible(true), 10);
-    
-    // Prevent body scroll when modal is open
     document.body.style.overflow = 'hidden';
-    
+
+    if (sellerId) {
+      fetch(`/api/customer/sellers/${sellerId}/story`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.story) {
+            setStory(data.story);
+          }
+        })
+        .catch((err) => console.error('Error fetching seller story:', err))
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, []);
+  }, [sellerId]);
+
+  // Slideshow auto-advance timer (5 seconds per slide)
+  const images = story?.images && story.images.length > 0
+    ? story.images
+    : [
+        'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80',
+      ];
+
+  useEffect(() => {
+    if (images.length <= 1) return;
+    const interval = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % images.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [images.length]);
+
+
+  function handleSkipToStorefront() {
+    setIsVisible(false);
+    setTimeout(() => {
+      if (onViewCatalogue) {
+        onViewCatalogue();
+      } else if (sellerId) {
+        navigate(`/storefront/${sellerId}`);
+      }
+      if (onClose) onClose();
+    }, 200);
+  }
 
   function handleClose() {
     setIsVisible(false);
-    setTimeout(onClose, 300); // Wait for animation to complete
+    setTimeout(onClose, 200);
   }
 
-  function handleBackdropClick(e) {
-    if (e.target === e.currentTarget) {
-      handleClose();
-    }
-  }
-
-  const initials = (seller.brandName || '??').slice(0, 2).toUpperCase();
-
-  // Generate artisan story from available data
-  const story = generateStory(seller);
+  const initials = (seller?.brandName || '??').slice(0, 2).toUpperCase();
+  const storyTitle = story?.title || `${seller?.brandName || 'Artisan'} Craft Journey`;
+  const storyDesc = story?.description || `${seller?.founderName || 'Our master artisan'} creates traditional handcrafted heritage products from ${seller?.city || ''}, ${seller?.state || 'India'}.`;
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${
-          isVisible ? 'opacity-60' : 'opacity-0'
+        className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-40 transition-opacity duration-300 ${
+          isVisible ? 'opacity-100' : 'opacity-0'
         }`}
-        onClick={handleBackdropClick}
+        onClick={handleClose}
       />
 
-      {/* Modal */}
+      {/* Story Slideshow Dialog Card */}
       <div
-        className={`fixed inset-x-0 bottom-0 z-50 transition-transform duration-300 ease-out ${
-          isVisible ? 'translate-y-0' : 'translate-y-full'
+        className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 transition-all duration-300 ${
+          isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
-        style={{ maxHeight: '85vh' }}
       >
-        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-t-3xl shadow-2xl overflow-hidden">
-          {/* Drag handle */}
-          <div className="flex justify-center pt-3 pb-2">
-            <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+        <div 
+          onClick={(e) => e.stopPropagation()}
+          className="bg-[#1a1c29] text-white rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl border border-white/10 relative flex flex-col max-h-[92vh]"
+        >
+          {/* Top Story Progress Bars */}
+          <div className="flex items-center gap-2 p-4 pb-2 z-10">
+            {images.map((_, idx) => (
+              <div
+                key={idx}
+                onClick={() => setActiveSlide(idx)}
+                className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden cursor-pointer"
+              >
+                <div
+                  className={`h-full bg-[#ff3f6c] transition-all duration-500 ${
+                    idx === activeSlide ? 'w-full' : idx < activeSlide ? 'w-full opacity-60' : 'w-0'
+                  }`}
+                />
+              </div>
+            ))}
           </div>
 
-          {/* Close button */}
+          {/* Close X Top Right */}
           <button
             onClick={handleClose}
-            className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-colors shadow-md z-10"
+            className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-black/60 text-white/90 hover:text-white flex items-center justify-center text-base font-bold transition-all cursor-pointer border border-white/20"
           >
-            <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            ✕
           </button>
 
-          {/* Scrollable content */}
-          <div className="overflow-y-auto" style={{ maxHeight: 'calc(85vh - 180px)' }}>
-            <div className="px-6 sm:px-8 pb-6">
-              {/* Header */}
-              <div className="flex items-start gap-4 mb-6">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center flex-shrink-0 shadow-lg">
-                  <span className="text-white font-black text-xl">{initials}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-2xl font-black text-gray-900 mb-1">
-                    {seller.brandName}
-                  </h2>
-                  <p className="text-sm text-gray-600 mb-2">
-                    📍 {seller.city}, {seller.state}
-                  </p>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
-                      ✓ Verified Seller
-                    </span>
-                    {seller.categoryTypes?.includes('GI-Tagged') && (
-                      <span className="inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
-                        🏷 GI-Tagged
-                      </span>
-                    )}
-                    <span className="inline-flex items-center gap-1 text-xs text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
-                      {seller.categoryTypes?.[0] || 'Textiles'}
-                    </span>
-                  </div>
-                </div>
+          {/* Slide Image Box (Uncropped full image display) */}
+          <div className="relative h-[48vh] sm:h-[54vh] bg-[#12131c] flex items-center justify-center overflow-hidden">
+            <img
+              src={images[activeSlide]}
+              alt={`Story slide ${activeSlide + 1}`}
+              className="max-h-full max-w-full w-auto h-auto object-contain transition-all duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#1a1c29] via-transparent to-black/30 pointer-events-none" />
+
+            {/* Seller Brand Badge overlay on image */}
+            <div className="absolute top-4 left-4 flex items-center gap-3 bg-black/75 backdrop-blur-md px-4 py-2 rounded-full border border-white/15">
+              <div className="w-9 h-9 rounded-full bg-[#ff3f6c] flex items-center justify-center font-black text-xs text-white">
+                {initials}
               </div>
-
-              {/* Category tag */}
-              <div className="inline-block bg-amber-900 text-amber-50 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
-                ✦ {seller.categoryTypes?.[0] || 'TEXTILES'}
-              </div>
-
-              {/* Story title */}
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                {story.title}
-              </h3>
-
-              {/* Story content */}
-              <div className="text-gray-700 leading-relaxed space-y-4 mb-6">
-                {story.paragraphs.map((paragraph, index) => (
-                  <p key={index} className="text-sm">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-
-              {/* Highlights */}
-              {story.highlights.length > 0 && (
-                <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 mb-4 border border-amber-200">
-                  <div className="space-y-2">
-                    {story.highlights.map((highlight, index) => (
-                      <div key={index} className="flex items-start gap-2">
-                        <span className="text-amber-600 mt-0.5">•</span>
-                        <span className="text-sm text-gray-700">{highlight}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Eco tags */}
-              {seller.ecoTags && seller.ecoTags.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
-                    Sustainability
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {seller.ecoTags.map((tag, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center gap-1 text-xs bg-green-50 text-green-700 px-2.5 py-1 rounded-full border border-green-200"
-                      >
-                        🌿 {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Footer with action button */}
-          <div className="sticky bottom-0 bg-gradient-to-t from-white via-white to-transparent px-6 sm:px-8 py-5 border-t border-gray-200">
-            <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs text-gray-500 mb-0.5">Starting from</p>
-                <p className="text-2xl font-black text-gray-900">
-                  ₹{(seller.avgSellingPrice || 0).toLocaleString('en-IN')}
-                </p>
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider">{seller?.brandName}</h4>
+                <p className="text-[11px] text-[#94969f] font-semibold">{seller?.city}, {seller?.state}</p>
               </div>
-              <button
-                onClick={onViewCatalogue}
-                className="flex-1 max-w-xs bg-gradient-to-r from-pink-600 to-rose-600 text-white font-bold py-4 px-6 rounded-xl hover:from-pink-700 hover:to-rose-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
-              >
-                View Catalogue →
-              </button>
             </div>
+
+            {/* Slide Navigation Controls */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={() => setActiveSlide((prev) => (prev === 0 ? images.length - 1 : prev - 1))}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center text-2xl transition-all cursor-pointer border border-white/20 shadow-lg z-10"
+                >
+                  ‹
+                </button>
+                <button
+                  onClick={() => setActiveSlide((prev) => (prev + 1) % images.length)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center text-2xl transition-all cursor-pointer border border-white/20 shadow-lg z-10"
+                >
+                  ›
+                </button>
+              </>
+            )}
           </div>
+
+          {/* Story Title & Enlarged Description */}
+          <div className="p-5 sm:p-6 overflow-y-auto max-h-[25vh] space-y-2">
+            <div className="inline-block bg-[#ff3f6c]/20 border border-[#ff3f6c]/40 text-[#ff3f6c] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+              ✦ Maker Story ({activeSlide + 1} of {images.length})
+            </div>
+            <h3 className="text-xl sm:text-2xl font-black text-white leading-snug tracking-tight">
+              {storyTitle}
+            </h3>
+            <p className="text-base sm:text-lg text-white/95 leading-relaxed font-medium">
+              {storyDesc}
+            </p>
+          </div>
+
+          {/* Bottom Bar with Prominent SKIP BUTTON at bottom right */}
+          <div className="p-4 px-6 border-t border-white/10 bg-[#151722] flex items-center justify-between">
+            <div className="text-xs font-semibold text-[#94969f]">
+              Artisan Heritage Storefront
+            </div>
+
+            {/* Prominent SKIP BUTTON at bottom right */}
+            <button
+              onClick={handleSkipToStorefront}
+              className="bg-[#ff3f6c] hover:bg-[#e73961] text-white font-bold text-xs sm:text-sm px-6 py-3 rounded-md uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg active:scale-95 cursor-pointer"
+            >
+              <span>Skip to Storefront</span>
+              <span className="text-lg">→</span>
+            </button>
+          </div>
+
         </div>
       </div>
+
     </>
   );
-}
-
-/**
- * Generate artisan story from seller data
- */
-function generateStory(seller) {
-  const craftType = seller.categoryTypes?.[0] || 'Textiles';
-  const founderName = seller.founderName || 'The artisan';
-  const city = seller.city || 'their hometown';
-  const state = seller.state || 'India';
-  
-  // Base title
-  const title = `Drawing the Mahabharata with a pen`;
-  
-  // Generate story paragraphs
-  const paragraphs = [];
-  
-  // Intro paragraph about the craft
-  if (craftType.toLowerCase().includes('kalamkari')) {
-    paragraphs.push(
-      `Kalamkari — pen-on-cloth — is a 3,000-year-old art form. ${founderName} uses a bamboo pen dipped in fermented iron-jaggery solution to draw epic mythological narratives on cotton.`
-    );
-  } else if (craftType.toLowerCase().includes('textile') || craftType.toLowerCase().includes('silk')) {
-    paragraphs.push(
-      `${founderName} practices the ancient art of ${craftType.toLowerCase()} in ${city}, ${state}. Each piece is created using traditional techniques passed down through generations, preserving centuries-old craftsmanship.`
-    );
-  } else {
-    paragraphs.push(
-      `${founderName} is a master artisan from ${city}, ${state}, specializing in ${craftType.toLowerCase()}. Using traditional methods and natural materials, each creation tells a unique story of India's rich cultural heritage.`
-    );
-  }
-  
-  // Add USP if available
-  if (seller.brandUsp) {
-    paragraphs.push(seller.brandUsp);
-  }
-  
-  // Add craft-specific details
-  if (seller.ecoTags && seller.ecoTags.some(tag => tag.toLowerCase().includes('handmade'))) {
-    paragraphs.push(
-      `Every piece is meticulously handcrafted, with attention to the smallest details. A single piece can take 40+ hours to complete, depicting intricate scenes that showcase the artist's dedication and skill.`
-    );
-  }
-  
-  // Highlights
-  const highlights = [];
-  
-  if (seller.ecoTags && seller.ecoTags.length > 0) {
-    highlights.push(`🌿 Eco-friendly: ${seller.ecoTags.join(', ')}`);
-  }
-  
-  if (seller.categoryTypes?.includes('GI-Tagged')) {
-    highlights.push('🏷 Geographical Indication (GI) Tagged - Authentic regional craft');
-  }
-  
-  highlights.push(`📦 Easy 7-day returns`);
-  highlights.push(`✋ 100% Handmade guarantee`);
-  
-  return {
-    title,
-    paragraphs,
-    highlights,
-  };
 }
