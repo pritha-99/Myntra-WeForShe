@@ -31,6 +31,7 @@ const NAV_ITEMS = [
 export default function DashboardLayout({ initialLang = 'en' }) {
   const [lang, setLang] = useState(initialLang);
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [lightMode, setLightMode] = useState(() => {
     const saved = localStorage.getItem('bharat_theme');
     return saved ? saved === 'light' : true; // Default to light
@@ -47,6 +48,20 @@ export default function DashboardLayout({ initialLang = 'en' }) {
       localStorage.setItem('bharat_theme', 'dark');
     }
   }, [lightMode]);
+
+  // Close dropdowns on click outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (profileOpen && !e.target.closest('button[title="Profile"]') && !e.target.closest('.profile-dropdown')) {
+        setProfileOpen(false);
+      }
+      if (catalogOpen && !e.target.closest('.catalog-dropdown-trigger')) {
+        setCatalogOpen(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [profileOpen, catalogOpen]);
 
   // ── Auth guard: redirect to landing if not logged in ──
   useEffect(() => {
@@ -103,11 +118,12 @@ export default function DashboardLayout({ initialLang = 'en' }) {
 
         {/* Horizontal nav tabs */}
         <nav
+          className="hide-scrollbar"
           style={{
             display: 'flex',
             gap: 4,
             flex: 1,
-            justifyContent: 'center',
+            justifyContent: 'flex-start',
             overflowX: 'auto',
             maxWidth: '100%',
             minWidth: 0,
@@ -237,22 +253,61 @@ export default function DashboardLayout({ initialLang = 'en' }) {
             </div>
           </div>
 
-          {/* Seller greeting */}
-          <div style={{
-            padding: '5px 12px',
-            borderRadius: 20,
-            background: 'rgba(255,63,108,0.1)',
-            border: '1px solid rgba(255,63,108,0.25)',
-            fontSize: '0.75rem',
-            color: 'var(--myntra-pink)',
-            fontWeight: 700,
-            marginLeft: 4,
-            maxWidth: 140,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}>
-            👤 {sellerName}
+          {/* Profile dropdown */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setProfileOpen(!profileOpen)}
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                border: `2px solid ${profileOpen ? 'var(--myntra-pink)' : 'var(--myntra-border)'}`,
+                background: profileOpen ? 'rgba(255,63,108,0.1)' : 'var(--myntra-surface)',
+                cursor: 'pointer',
+                fontSize: '1.1rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s',
+                flexShrink: 0,
+                color: 'var(--myntra-text)',
+              }}
+              title="Profile"
+            >
+              👤
+            </button>
+
+            {profileOpen && (
+              <div
+                className="profile-dropdown"
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: 8,
+                  background: 'var(--myntra-surface)',
+                  border: '1px solid var(--myntra-border)',
+                  borderRadius: 8,
+                  padding: '12px 16px',
+                  zIndex: 999,
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+                  minWidth: 180,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <div style={{
+                  fontSize: '0.85rem',
+                  color: 'var(--myntra-text)',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}>
+                  <span style={{ fontSize: '1.2rem' }}>👤</span>
+                  <span>{sellerName}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Logout button */}

@@ -17,11 +17,15 @@ export default function ComingSoonPage({ tabKey = 'comingSoon' }) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: 'calc(100vh - 60px)',
-        padding: 40,
+        minHeight: 'calc(100vh - 64px)',
+        padding: '40px 20px',
         gap: 20,
         textAlign: 'center',
         background: 'var(--myntra-dark)',
+        width: '100%',
+        maxWidth: '100vw',
+        boxSizing: 'border-box',
+        overflowX: 'hidden',
       }}
     >
       {/* Illustration */}
@@ -41,11 +45,12 @@ export default function ComingSoonPage({ tabKey = 'comingSoon' }) {
           background: 'var(--myntra-surface)',
           border: '1px solid var(--myntra-border)',
           borderRadius: 20,
-          padding: '40px 56px',
-          maxWidth: 480,
+          padding: '40px clamp(24px, 5vw, 56px)',
+          maxWidth: '480px',
           width: '100%',
           boxShadow: '0 16px 48px rgba(0,0,0,0.15)',
           animation: 'slideUp 0.35s ease',
+          boxSizing: 'border-box',
         }}
       >
         <div
