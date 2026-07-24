@@ -2,8 +2,12 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs').promises;
+const { GoogleGenAI } = require('@google/genai');
 const Product = require('../models/Product');
 const { processGarmentCatalog } = require('../services/garmentCatalogService');
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // ── Multer storage config ──
 const storage = multer.diskStorage({
@@ -27,6 +31,91 @@ const upload = multer({
     if (ok) cb(null, true);
     else cb(new Error('Only image files are allowed.'));
   },
+});
+
+/**
+ * POST /api/products/generate-title
+ * Generate an SEO-optimised product title using Gemini Vision.
+ * Accepts multipart/form-data with fields:
+ *   - image       (required) — front-view garment image
+ *   - productName (required) — user-typed product name (used as contextual hint)
+ * Response: { title: string }
+ */
+router.post('/generate-title', upload.single('image'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Front image is required for title generation.' });
+  }
+
+  const productName = (req.body.productName || '').trim();
+  if (!productName) {
+    return res.status(400).json({ error: 'productName is required.' });
+  }
+
+  try {
+    // Read image as base64
+    const imageBuffer = await fs.readFile(req.file.path);
+    const base64Image = imageBuffer.toString('base64');
+    const mimeType = req.file.mimetype || 'image/jpeg';
+
+    const prompt = `You are an expert e-commerce catalog specialist generating SEO-optimized product titles for Myntra.
+
+You are given:
+1. A product image (front view)
+2. A seller-provided product name for context: "${productName}"
+
+Generate ONE concise, SEO-friendly product title based primarily on what is visible in the image, using the seller's name only as a contextual hint for product type.
+
+Title format (include only what is clearly visible, in this order):
+[Style/Fit] [Design/Pattern] [Material] [Product Type] [Occasion]
+
+Rules:
+- Use only attributes that are clearly visible in the image.
+- Omit any attribute that cannot be determined with high confidence.
+- Keep the title to 4–7 words.
+- Do not invent materials, designs, or occasions not visible.
+- Do not include brand names, gender, color, size, or any marketing terms.
+- Use natural Myntra-style wording.
+- Use Title Case.
+- Return ONLY the product title — no explanation, no punctuation.
+
+Examples:
+Oversized Graphic Cotton T-Shirt
+Embroidered Cotton Straight Kurta
+Slim Fit Checked Shirt
+Textured Linen Casual Shirt
+Printed Cotton Maxi Dress
+Solid Denim Cargo Jeans`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            {
+              inlineData: {
+                mimeType,
+                data: base64Image,
+              },
+            },
+            { text: prompt },
+          ],
+        },
+      ],
+    });
+
+    const rawTitle = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const title = rawTitle.trim().replace(/["""'']/g, '').replace(/\.$/, '').trim();
+
+    if (!title) {
+      return res.status(500).json({ error: 'Gemini returned an empty title. Please try again.' });
+    }
+
+    return res.json({ title });
+  } catch (err) {
+    console.error('Title generation error:', err.message);
+    return res.status(500).json({ error: 'Failed to generate title. Please try again.' });
+  }
 });
 
 /**

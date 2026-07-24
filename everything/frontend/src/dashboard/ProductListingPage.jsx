@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { createProduct, fetchProducts, generateAiImage } from '../api/client';
+import { createProduct, fetchProducts, generateAiImage, generateProductTitle } from '../api/client';
 import { getSellerId } from '../state/sessionStore';
 import { speak } from '../api/ttsProvider';
 
@@ -29,7 +29,7 @@ function Field({ label, required, children }) {
 
 export default function ProductListingPage() {
   const { lang, t } = useOutletContext();
-  const sellerId = getSellerId();
+  const sellerId = localStorage.getItem('sellerId') || getSellerId();
 
   // Form state
   const [name, setName]         = useState('');
@@ -57,6 +57,13 @@ export default function ProductListingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast]       = useState(null); // { type: 'success'|'error', msg }
   const [catalogModal, setCatalogModal] = useState(null); // For showing catalog results
+
+  // Title generation modal state
+  const [titleModalOpen, setTitleModalOpen]       = useState(false);
+  const [generatingTitle, setGeneratingTitle]     = useState(false);
+  const [suggestedTitle, setSuggestedTitle]       = useState('');
+  const [titleGenError, setTitleGenError]         = useState(null);
+  const [pendingFormData, setPendingFormData]     = useState(null); // deferred FormData
 
   // Products list
   const [products, setProducts] = useState([]);
@@ -184,10 +191,9 @@ export default function ProductListingPage() {
       return;
     }
 
-    setSubmitting(true);
+    // Build the FormData now (deferred — actual submission happens after title confirm)
     const formData = new FormData();
     formData.append('sellerId', sellerId);
-    formData.append('name', name.trim());
     formData.append('price', price);
     formData.append('category', category);
     formData.append('quantity', quantity);
@@ -198,26 +204,61 @@ export default function ProductListingPage() {
     formData.append('backImageMode', backImageMode);
     additionalImages.forEach((img) => formData.append('additionalImages', img));
 
+    // Store FormData for deferred submission and open the title modal
+    setPendingFormData(formData);
+    setSuggestedTitle('');
+    setTitleGenError(null);
+    setTitleModalOpen(true);
+    setGeneratingTitle(true);
+
+    // Call Gemini to generate the SEO title
     try {
-      const res = await createProduct(formData);
+      const { title } = await generateProductTitle(frontImage, name.trim());
+      setSuggestedTitle(title);
+    } catch (err) {
+      setTitleGenError(err.message || 'Could not generate title. You can enter one manually.');
+      setSuggestedTitle(name.trim()); // fallback to user's original name
+    } finally {
+      setGeneratingTitle(false);
+    }
+  }
+
+  // Called when the user confirms the (possibly edited) title in the modal
+  async function handleConfirmTitle() {
+    const finalTitle = suggestedTitle.trim() || name.trim();
+    if (!finalTitle) {
+      setTitleGenError('Please enter a product title before confirming.');
+      return;
+    }
+
+    // Append the confirmed title to the deferred FormData
+    pendingFormData.append('name', finalTitle);
+
+    setTitleModalOpen(false);
+    setSubmitting(true);
+
+    try {
+      const res = await createProduct(pendingFormData);
       setProducts((prev) => [res.product, ...prev]);
-      
+
       // Show catalog modal if garmentCatalog exists
       if (res.product.garmentCatalog) {
         setCatalogModal(res.product.garmentCatalog);
       }
-      
-    // Reset form
-    setName(''); setPrice(''); setCategory(''); setQuantity('');
-    setFrontImage(null); setFrontPreview(null);
-    setBackImage(null); setBackPreview(null);
-    setAdditionalImages([]); setAdditionalPreviews([]);
-    setPriceTagConfirmed(false);
-    setFrontImageMode('upload');
-    setBackImageMode('upload');
-    setGeneratingFront(false);
-    setGeneratingBack(false);
-      
+
+      // Reset form
+      setName(''); setPrice(''); setCategory(''); setQuantity('');
+      setFrontImage(null); setFrontPreview(null);
+      setBackImage(null); setBackPreview(null);
+      setAdditionalImages([]); setAdditionalPreviews([]);
+      setPriceTagConfirmed(false);
+      setFrontImageMode('upload');
+      setBackImageMode('upload');
+      setGeneratingFront(false);
+      setGeneratingBack(false);
+      setPendingFormData(null);
+      setSuggestedTitle('');
+
       const msg = t('listingSuccess');
       showToast('success', msg);
       speak(msg, lang);
@@ -228,6 +269,14 @@ export default function ProductListingPage() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  // Called when user cancels the title modal — no product is created
+  function handleCancelTitleModal() {
+    setTitleModalOpen(false);
+    setPendingFormData(null);
+    setSuggestedTitle('');
+    setTitleGenError(null);
   }
 
   const inputStyle = {
@@ -246,6 +295,171 @@ export default function ProductListingPage() {
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 28px', display: 'flex', flexDirection: 'column', gap: 32 }}>
+
+      {/* ── AI Title Confirmation Modal ── */}
+      {titleModalOpen && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 10000,
+          background: 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '24px',
+          animation: 'fadeIn 0.2s ease',
+        }}>
+          <div style={{
+            background: 'var(--myntra-surface)',
+            border: '1px solid var(--myntra-border)',
+            borderRadius: 20,
+            padding: '36px 32px',
+            maxWidth: 500,
+            width: '100%',
+            boxShadow: '0 24px 60px rgba(0,0,0,0.4)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 20,
+          }}>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: '1.5rem' }}>✨</span>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: 'var(--myntra-text)', letterSpacing: '0.01em' }}>
+                  AI-Suggested SEO Title
+                </h2>
+                <p style={{ margin: '3px 0 0', fontSize: '0.78rem', color: 'var(--myntra-muted)' }}>
+                  Generated by Gemini Vision · Review and edit before listing
+                </p>
+              </div>
+            </div>
+
+            <hr style={{ border: 'none', borderTop: '1px solid var(--myntra-border)', margin: 0 }} />
+
+            {/* Spinner while generating */}
+            {generatingTitle ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, padding: '20px 0' }}>
+                <div style={{
+                  width: 38, height: 38,
+                  border: '3px solid var(--myntra-border)',
+                  borderTopColor: 'var(--myntra-pink)',
+                  borderRadius: '50%',
+                  animation: 'spin 0.75s linear infinite',
+                }} />
+                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--myntra-muted)', fontWeight: 600 }}>
+                  Analysing image with Gemini…
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Error banner (non-blocking) */}
+                {titleGenError && (
+                  <div style={{
+                    background: 'rgba(255,82,82,0.1)',
+                    border: '1px solid rgba(255,82,82,0.3)',
+                    borderRadius: 10,
+                    padding: '10px 14px',
+                    fontSize: '0.78rem',
+                    color: '#ff5252',
+                    fontWeight: 600,
+                  }}>
+                    ⚠️ {titleGenError}
+                  </div>
+                )}
+
+                {/* Editable title input */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--myntra-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Product Title
+                  </label>
+                  <input
+                    id="ai-suggested-title-input"
+                    type="text"
+                    value={suggestedTitle}
+                    onChange={(e) => setSuggestedTitle(e.target.value)}
+                    placeholder="Enter or edit the product title…"
+                    style={{
+                      width: '100%',
+                      background: 'var(--myntra-card)',
+                      border: '2px solid var(--myntra-pink)',
+                      borderRadius: 10,
+                      padding: '13px 14px',
+                      fontSize: '1rem',
+                      fontWeight: 700,
+                      color: 'var(--myntra-text)',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                      transition: 'border-color 0.15s',
+                    }}
+                    autoFocus
+                  />
+                  <span style={{ fontSize: '0.75rem', color: 'var(--myntra-muted)' }}>
+                    💡 Feel free to edit this title before confirming. It will be used as your product listing name.
+                  </span>
+                </div>
+
+                {/* Action buttons */}
+                <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
+                  <button
+                    id="confirm-title-btn"
+                    type="button"
+                    onClick={handleConfirmTitle}
+                    disabled={submitting}
+                    style={{
+                      flex: 1,
+                      padding: '13px 0',
+                      background: submitting
+                        ? 'var(--myntra-border)'
+                        : 'linear-gradient(90deg, var(--myntra-pink), #ff6b9d)',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 10,
+                      fontSize: '0.88rem',
+                      fontWeight: 800,
+                      cursor: submitting ? 'not-allowed' : 'pointer',
+                      letterSpacing: '0.03em',
+                      textTransform: 'uppercase',
+                      transition: 'opacity 0.15s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    {submitting ? (
+                      <>
+                        <div style={{ width: 16, height: 16, border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.75s linear infinite' }} />
+                        Listing…
+                      </>
+                    ) : '✓ Confirm & List Product'}
+                  </button>
+                  <button
+                    id="cancel-title-btn"
+                    type="button"
+                    onClick={handleCancelTitleModal}
+                    disabled={submitting}
+                    style={{
+                      flex: 1,
+                      padding: '13px 0',
+                      background: 'transparent',
+                      color: 'var(--myntra-muted)',
+                      border: '1.5px solid var(--myntra-border)',
+                      borderRadius: 10,
+                      fontSize: '0.88rem',
+                      fontWeight: 700,
+                      cursor: submitting ? 'not-allowed' : 'pointer',
+                      letterSpacing: '0.03em',
+                      textTransform: 'uppercase',
+                      transition: 'border-color 0.15s, color 0.15s',
+                    }}
+                    onMouseEnter={(e) => { e.target.style.borderColor = 'var(--myntra-text)'; e.target.style.color = 'var(--myntra-text)'; }}
+                    onMouseLeave={(e) => { e.target.style.borderColor = 'var(--myntra-border)'; e.target.style.color = 'var(--myntra-muted)'; }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Toast */}
       {toast && (

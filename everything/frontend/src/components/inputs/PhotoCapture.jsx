@@ -4,7 +4,8 @@ import { useState, useRef } from 'react';
  * PhotoCapture — camera capture or file pick for signature/documents.
  * Includes:
  *   1. File size check (max 10 MB)
- *   2. Simulated LLM content verification for signature / trademark_certificate / bank_document
+ *   2. Gemini Vision content verification for signature / trademark_certificate / bank_document
+ *      via POST /api/seller/verify-image
  *
  * entry.inputConfig.verify can be: 'signature' | 'trademark_certificate' | 'bank_document'
  */
@@ -12,20 +13,23 @@ import { useState, useRef } from 'react';
 const MAX_SIZE_MB = 10;
 const MAX_BYTES   = MAX_SIZE_MB * 1024 * 1024;
 
-// Simulated LLM check — in production, replace with a real API call
-async function simulateContentCheck(verifyType, dataUrl) {
-  // Simulate network delay
-  await new Promise(r => setTimeout(r, 1200));
+// Real Gemini-backed content check via backend
+async function verifyImageWithGemini(verifyType, dataUrl) {
+  // Convert dataUrl → Blob so we can POST as multipart/form-data
+  const res = await fetch(dataUrl);
+  const blob = await res.blob();
 
-  // In the prototype we always pass, but reject zero-byte or tiny (< 2 KB) images
-  // as they are likely corrupt or blank — a crude but useful heuristic
-  const base64 = dataUrl.split(',')[1] || '';
-  const approxBytes = Math.ceil((base64.length * 3) / 4);
-  if (approxBytes < 2000) {
-    const docName = (verifyType || 'document').replace('_', ' ');
-    return { ok: false, reason: `The uploaded image does not appear to be a valid ${docName}. Please ensure it is clear and correctly photographed.` };
-  }
-  return { ok: true };
+  const formData = new FormData();
+  formData.append('image', blob, 'upload.jpg');
+  formData.append('verifyType', verifyType);
+
+  const response = await fetch('/api/seller/verify-image', {
+    method: 'POST',
+    body: formData,
+  });
+
+  const data = await response.json();
+  return { ok: !!data.ok, reason: data.reason || null };
 }
 
 const VERIFY_LABELS = {
@@ -117,11 +121,16 @@ export default function PhotoCapture({ entry, value, onChange, onSubmit, languag
       img.src = dataUrl;
     });
 
-    // 2. LLM content check (only when verifyType is set)
+    // 2. Gemini content verification (only when verifyType is set)
     if (verifyType) {
       setChecking(true);
       setPreview(compressedDataUrl); // show preview while checking
-      const result = await simulateContentCheck(verifyType, compressedDataUrl);
+      let result;
+      try {
+        result = await verifyImageWithGemini(verifyType, compressedDataUrl);
+      } catch (_err) {
+        result = { ok: false, reason: 'Image verification is temporarily unavailable. Please try again.' };
+      }
       setChecking(false);
       if (!result.ok) {
         setCheckError(result.reason);

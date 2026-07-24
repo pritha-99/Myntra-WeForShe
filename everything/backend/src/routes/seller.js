@@ -1,6 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const Seller = require('../models/Seller');
+const { GoogleGenAI } = require('@google/genai');
+const fs = require('fs').promises;
+
+// General Gemini client (text tasks: chat, explain, validate)
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+// Dedicated Gemini Vision client (image verification in seller onboarding)
+// Uses GEMINI_VISION_KEY; falls back to GEMINI_API_KEY if not set
+const aiVision = new GoogleGenAI({ apiKey: process.env.GEMINI_VISION_KEY || process.env.GEMINI_API_KEY });
+
 
 /**
  * POST /api/seller/submit
@@ -245,6 +255,105 @@ router.post('/story', async (req, res) => {
   } catch (err) {
     console.error('Save story error:', err.message);
     return res.status(500).json({ error: err.message || 'Failed to save story.' });
+  }
+});
+
+// ── Multer instance for verify-image endpoint ──
+const verifyStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, '../../uploads'));
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `verify-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
+  },
+});
+const verifyUpload = multer({
+  storage: verifyStorage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = /jpeg|jpg|png|webp/;
+    const ok = allowed.test(path.extname(file.originalname).toLowerCase())
+                && allowed.test(file.mimetype);
+    if (ok) cb(null, true);
+    else cb(new Error('Only image files are allowed.'));
+  },
+});
+
+// Per-type Gemini prompts (YES/NO only response)
+const VERIFY_PROMPTS = {
+  signature:
+    'Look at this image carefully. Is this a handwritten signature on paper/any surface, OR a digital/electronic signature (e-sign)? ' +
+    'Answer with only YES or NO — nothing else.',
+  bank_document:
+    'Look at this image carefully. Is this a cancelled cheque OR a bank passbook page that clearly shows an account holder name and account number? ' +
+    'Answer with only YES or NO — nothing else.',
+  trademark_certificate:
+    'Look at this image carefully. Is this an official trademark registration certificate or intellectual property registration document issued by a government authority? ' +
+    'Answer with only YES or NO — nothing else.',
+};
+
+// Friendly rejection reasons returned to the frontend
+const VERIFY_FAIL_REASONS = {
+  signature:
+    'The uploaded image does not appear to be a signature. Please upload a clear photo of your handwritten signature or an e-signature image and try again.',
+  bank_document:
+    'The uploaded image does not appear to be a cancelled cheque or bank passbook. Please upload a clear photo of your cancelled cheque or passbook first page.',
+  trademark_certificate:
+    'The uploaded image does not appear to be a trademark certificate. Please upload a clear photo of your official trademark registration document.',
+};
+
+/**
+ * POST /api/seller/verify-image
+ * Verify a seller-uploaded image matches the expected document type using Gemini Vision.
+ * Accepts multipart/form-data:
+ *   - image      (required) — the uploaded file
+ *   - verifyType (required) — 'signature' | 'bank_document' | 'trademark_certificate'
+ * Response: { ok: true } | { ok: false, reason: string }
+ */
+router.post('/verify-image', verifyUpload.single('image'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ ok: false, reason: 'No image file received.' });
+  }
+
+  const verifyType = (req.body.verifyType || '').trim();
+  if (!VERIFY_PROMPTS[verifyType]) {
+    return res.status(400).json({ ok: false, reason: `Unknown verifyType: ${verifyType}` });
+  }
+
+  try {
+    const imageBuffer = await fs.readFile(req.file.path);
+    const base64Image = imageBuffer.toString('base64');
+    const mimeType = req.file.mimetype || 'image/jpeg';
+
+    const response = await aiVision.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { inlineData: { mimeType, data: base64Image } },
+            { text: VERIFY_PROMPTS[verifyType] },
+          ],
+        },
+      ],
+    });
+
+    const answer = (response.candidates?.[0]?.content?.parts?.[0]?.text || '').trim().toUpperCase();
+    const ok = answer.startsWith('YES');
+
+    // Clean up the temporary file asynchronously
+    fs.unlink(req.file.path).catch(() => {});
+
+    return res.json({ ok, reason: ok ? null : VERIFY_FAIL_REASONS[verifyType] });
+  } catch (err) {
+    console.error('Image verification error:', err.message);
+    // Clean up on error too
+    if (req.file?.path) fs.unlink(req.file.path).catch(() => {});
+    return res.status(500).json({
+      ok: false,
+      reason: 'Image verification is temporarily unavailable. Please try again.',
+    });
   }
 });
 

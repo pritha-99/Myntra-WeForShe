@@ -521,9 +521,9 @@
     "section": "Part 2E — Additional Questions",
     "order": 30,
     "questionText": {
-      "en": "Do you have a Trademark certificate for your brand?",
-      "ta": "உங்கள் பிராண்டுக்கு Trademark சான்றிதழ் உள்ளதா?",
-      "hi": "क्या आपके ब्रांड का ट्रेडमार्क प्रमाणपत्र है?"
+      "en": "Upload your Trademark Certificate.",
+      "ta": "உங்கள் Trademark சான்றிதழை பதிவேற்றவும்.",
+      "hi": "अपना ट्रेडमार्क प्रमाणपत्र अपलोड करें।"
     },
     "inputType": "photo_capture",
     "inputConfig": { "verify": "trademark_certificate" },

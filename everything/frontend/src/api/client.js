@@ -219,6 +219,27 @@ export async function generateAiImage(file, pose = 'front') {
 }
 
 /**
+ * POST /api/products/generate-title — generate an SEO-optimised product title via Gemini Vision.
+ * @param {File} imageFile — the front-view image file (File object from input)
+ * @param {string} productName — the user-typed product name for contextual hint
+ * Returns { title: string }
+ */
+export async function generateProductTitle(imageFile, productName) {
+  const formData = new FormData();
+  formData.append('image', imageFile);
+  formData.append('productName', productName);
+  const res = await fetch(`${BASE}/products/generate-title`, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: 'Network error' }));
+    throw new Error(err.error || err.message || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+/**
  * GET /api/products/:sellerId — list all products for a seller.
  * Returns { products: [] }
  */
