@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 /**
  * PhotoCapture — camera capture or file pick for signature/documents.
@@ -13,15 +13,13 @@ import { useState, useRef } from 'react';
 const MAX_SIZE_MB = 10;
 const MAX_BYTES   = MAX_SIZE_MB * 1024 * 1024;
 
-// Real Gemini-backed content check via backend
-async function verifyImageWithGemini(verifyType, dataUrl) {
-  // Convert dataUrl → Blob so we can POST as multipart/form-data
-  const res = await fetch(dataUrl);
-  const blob = await res.blob();
-
+// Upload file blob to backend and verify using Gemini Vision
+async function uploadAndVerifyImage(blob, verifyType) {
   const formData = new FormData();
   formData.append('image', blob, 'upload.jpg');
-  formData.append('verifyType', verifyType);
+  if (verifyType) {
+    formData.append('verifyType', verifyType);
+  }
 
   const response = await fetch('/api/seller/verify-image', {
     method: 'POST',
@@ -29,7 +27,7 @@ async function verifyImageWithGemini(verifyType, dataUrl) {
   });
 
   const data = await response.json();
-  return { ok: !!data.ok, reason: data.reason || null };
+  return { ok: !!data.ok, url: data.url || null, reason: data.reason || null };
 }
 
 const VERIFY_LABELS = {
@@ -56,6 +54,10 @@ export default function PhotoCapture({ entry, value, onChange, onSubmit, languag
   const [checkError, setCheckError] = useState(null);
   const [sizeError, setSizeError] = useState(null);
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    setPreview(value || null);
+  }, [value]);
 
   const verifyType = entry?.inputConfig?.verify || null;
   const verifyLabel = verifyType ? (VERIFY_LABELS[verifyType]?.[language] || VERIFY_LABELS[verifyType]?.en) : null;
@@ -121,28 +123,33 @@ export default function PhotoCapture({ entry, value, onChange, onSubmit, languag
       img.src = dataUrl;
     });
 
-    // 2. Gemini content verification (only when verifyType is set)
-    if (verifyType) {
-      setChecking(true);
-      setPreview(compressedDataUrl); // show preview while checking
-      let result;
-      try {
-        result = await verifyImageWithGemini(verifyType, compressedDataUrl);
-      } catch (_err) {
-        result = { ok: false, reason: 'Image verification is temporarily unavailable. Please try again.' };
-      }
-      setChecking(false);
-      if (!result.ok) {
-        setCheckError(result.reason);
-        setPreview(null);
-        onChange(null);
-        if (inputRef.current) inputRef.current.value = '';
-        return;
-      }
+    // Convert DataURL to Blob for backend upload
+    const blob = await (await fetch(compressedDataUrl)).blob();
+
+    // 2. Upload to backend /uploads and optional Gemini content verification
+    setChecking(true);
+    setPreview(compressedDataUrl); // temporary preview while uploading
+
+    let result;
+    try {
+      result = await uploadAndVerifyImage(blob, verifyType);
+    } catch (_err) {
+      result = { ok: false, reason: 'Image upload is temporarily unavailable. Please try again.' };
+    }
+    setChecking(false);
+
+    if (!result.ok) {
+      setCheckError(result.reason);
+      setPreview(null);
+      onChange(null);
+      if (inputRef.current) inputRef.current.value = '';
+      return;
     }
 
-    setPreview(compressedDataUrl);
-    onChange(compressedDataUrl);
+    // Store local static uploads path (e.g. /uploads/verify-172185...) in state and answer store
+    const storedUrl = result.url || compressedDataUrl;
+    setPreview(storedUrl);
+    onChange(storedUrl);
   }
 
   function handleRetake() {

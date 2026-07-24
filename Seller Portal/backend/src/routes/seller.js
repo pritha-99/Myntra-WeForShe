@@ -316,8 +316,16 @@ router.post('/verify-image', verifyUpload.single('image'), async (req, res) => {
     return res.status(400).json({ ok: false, reason: 'No image file received.' });
   }
 
+  const imageUrl = `/uploads/${req.file.filename}`;
   const verifyType = (req.body.verifyType || '').trim();
+
+  // If no verifyType specified, persist in uploads/ and return local image URL
+  if (!verifyType) {
+    return res.json({ ok: true, url: imageUrl });
+  }
+
   if (!VERIFY_PROMPTS[verifyType]) {
+    fs.unlink(req.file.path).catch(() => {});
     return res.status(400).json({ ok: false, reason: `Unknown verifyType: ${verifyType}` });
   }
 
@@ -342,10 +350,14 @@ router.post('/verify-image', verifyUpload.single('image'), async (req, res) => {
     const answer = (response.candidates?.[0]?.content?.parts?.[0]?.text || '').trim().toUpperCase();
     const ok = answer.startsWith('YES');
 
-    // Clean up the temporary file asynchronously
-    fs.unlink(req.file.path).catch(() => {});
-
-    return res.json({ ok, reason: ok ? null : VERIFY_FAIL_REASONS[verifyType] });
+    if (ok) {
+      // Keep file in /uploads and return static local URL
+      return res.json({ ok: true, url: imageUrl });
+    } else {
+      // Verification failed — clean up uploaded file
+      fs.unlink(req.file.path).catch(() => {});
+      return res.json({ ok: false, reason: VERIFY_FAIL_REASONS[verifyType] });
+    }
   } catch (err) {
     console.error('Image verification error:', err.message);
     // Clean up on error too

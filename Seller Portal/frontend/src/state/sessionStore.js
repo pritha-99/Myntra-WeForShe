@@ -13,20 +13,28 @@ const DEFAULT_STATE = {
   failedAttempts: {},
 };
 
+let inMemoryState = null;
+
 function _load() {
+  if (inMemoryState) {
+    return inMemoryState;
+  }
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY);
-    return raw ? { ...DEFAULT_STATE, ...JSON.parse(raw) } : { ...DEFAULT_STATE };
+    inMemoryState = raw ? { ...DEFAULT_STATE, ...JSON.parse(raw) } : { ...DEFAULT_STATE };
   } catch {
-    return { ...DEFAULT_STATE };
+    inMemoryState = { ...DEFAULT_STATE };
   }
+  return inMemoryState;
 }
 
 function _save(state) {
+  inMemoryState = { ...state };
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    // Storage quota exceeded — silently fail
+  } catch (err) {
+    // Storage quota exceeded (e.g. large base64 uploaded images) — inMemoryState retains all state in RAM for submission
+    console.warn('sessionStorage quota exceeded, storing state in memory for session duration:', err.message);
   }
 }
 
@@ -86,7 +94,12 @@ export function setLanguage(lang) {
 
 /** Clears all session data (full reset). */
 export function resetSession() {
-  _save({ ...DEFAULT_STATE });
+  inMemoryState = { ...DEFAULT_STATE };
+  try {
+    sessionStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Ignore
+  }
 }
 
 // ── Seller ID (persisted in localStorage, survives session) ──
