@@ -59,7 +59,7 @@ const ProductModel = mongoose.model('Product', productSchema);
 // ── Mock data (from mockdata.js) ─────────────────────────────────────────────
 
 // Paths to stock model images served from /uploads (copies will be created if absent)
-// Using the 3 stock model images stored in everything/backend/src/assets/stock_models/
+// Using the 3 stock model images stored in Seller Portal/backend/src/assets/stock_models/
 const STOCK_IMG = {
   front: '/uploads/stock-front.jpg',
   back:  '/uploads/stock-back.jpg',

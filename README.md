@@ -1,19 +1,28 @@
 # Myntra WeForShe — Hackathon Project
 
-> **Audio-first seller onboarding + customer marketplace for empowering women artisans across India**  
-> Built for the Myntra WeForShe Hackathon
+> **Audio-first, Multilingual and Chatbot supported seller onboarding, automated garment cataloging and customer marketplace empowering artisans across India.**  
+> Built for the Myntra WeForShe Hackathon by Team Frootloops
 
 ---
 
 ## 📋 Project Overview
 
-This project consists of two main applications that work together to create an ecosystem supporting women-led artisan businesses:
+This project provides an end-to-end ecosystem connecting Tier 2/3 artisans with nationwide customers through two primary applications:
 
-### 1. **Seller Onboarding Platform** (`everything/`)
-An audio-first, multilingual onboarding system designed for low-literacy sellers in Tier 2/3 India. Features a tile-based UI with voice guidance in English, Hindi, and Tamil.
+### 1. **Seller Portal** (`Seller Portal/`)
+An audio-first, multilingual onboarding system and seller management suite designed for low-literacy sellers in Tier 2/3 India.
+- **Multilingual Support**: Questions can be read and answered in English, Hindi, or Tamil.
+- **Mia AI Assistant**: Powered by Google Gemini 2.5 Flash for real-time field help, voice input interpretation, and interactive chat.
+- **Automated Garment Cataloging**: On-model generation pipeline powered by Replicate AI's **FLUX Kontext Pro (`black-forest-labs/flux-kontext-pro`)** model. Converts seller flat-lay product photos into high-quality, photorealistic on-model studio photos across Front and Back poses while preserving all fabric details, textures, logos, and seams.
+- **E-Commerce Compliance Engine**: Automatic validation of image dimensions (1080×1440), 3:4 aspect ratio, background neutrality, blur detection, and file size checks.
+- **My Craft Journey**: Storytelling module for artisans to document their craft origins, heritage, and upload photo galleries.
 
-### 2. **Customer Marketplace** (`customer-side-*/`)
-A consumer-facing platform where customers can discover and shop from women-led artisan brands, organized by Indian states and craft types.
+### 2. **Customer Marketplace** (`Customer Side/`)
+A consumer marketplace allowing shoppers to discover women-led artisan brands, explore traditional crafts, and buy directly from sellers.
+- **Made Across India Interactive Map**: Visual SVG map of India for state-by-state artisan discovery.
+- **State-Based Grouping**: Expandable state accordions organizing sellers by geographic craft hubs.
+- **Artisan Storefronts & Story Modals**: Dedicated brand pages with USP badges, eco-responsibility tags, product catalogs, and craft story galleries.
+- **Product Detail Pages**: High-resolution image galleries, specifications, pricing, and seller background info.
 
 ---
 
@@ -22,19 +31,34 @@ A consumer-facing platform where customers can discover and shop from women-led 
 ```
 Myntra-WeForShe/
 │
-├── everything/                          # Seller onboarding application
-│   ├── frontend/                        # React + Vite + Tailwind UI
-│   │   └── 40-question manifest-driven onboarding flow
-│   └── backend/                         # Node.js + Express + MongoDB + Gemini AI
-│       └── Validation, explanation, chat, seller/product APIs
+├── Seller Portal/                       # Seller onboarding & management suite
+│   ├── frontend/                        # React 19 + Vite + Tailwind CSS UI
+│   │   ├── src/
+│   │   │   ├── components/              # Audio player, QuestionScreen, MiaChat, Tile inputs
+│   │   │   ├── dashboard/               # HomePage, ProductListingPage, MyStoryPage, ComingSoonPage
+│   │   │   ├── data/                    # Onboarding 40-question manifest
+│   │   │   └── i18n/                    # Multilingual translations (EN, HI, TA)
+│   │   └── package.json
+│   │
+│   └── backend/                         # Node.js + Express + MongoDB + Gemini + Python AI Services
+│       ├── src/
+│       │   ├── models/                  # Seller, Product, Story Mongoose schemas
+│       │   ├── routes/                  # validate, explain, chat, lookup, seller, products, mai
+│       │   ├── services/                # garmentCatalogService.js, replicate_client.py (FLUX Kontext Pro)
+│       │   └── validators/              # phone, gstin, ifsc, password, pincode logic
+│       └── package.json
 │
-├── customer-side-react/                 # Customer marketplace frontend
-│   └── React + Vite + Tailwind + React Router
-│       └── Browse sellers by state, view storefronts
-│
-└── customer-side-backend/               # Customer marketplace backend
-    └── Node.js + Express + MongoDB
-        └── Seller & product listing APIs
+└── Customer Side/                       # Customer marketplace folder
+    ├── customer-side-react/             # Customer marketplace frontend (React + Vite + Tailwind)
+    │   ├── src/
+    │   │   ├── components/              # IndiaMap, StateAccordion, StoreStoryModal, ProductCard
+    │   │   └── pages/                   # HomePage, MapPage, StateDetailPage, StorefrontPage, ProductDetailPage
+    │   └── package.json
+    │
+    └── customer-side-backend/           # Customer marketplace backend (Express + MongoDB)
+        ├── models/                      # Seller, Product, Story schemas
+        ├── routes/                      # customer.js (sellers-grouped, storefront, story, products)
+        └── server.js                    # Serves product images from Seller Portal uploads
 ```
 
 ---
@@ -42,31 +66,31 @@ Myntra-WeForShe/
 ## 🚀 Technology Stack
 
 ### Frontend
-- **React 19** with Vite
+- **React 19** with **Vite**
 - **Tailwind CSS 4** for styling
-- **React Router** for navigation
+- **React Router 7** for routing
+- **Web Speech API & Custom Providers** for Text-to-Speech (TTS) and Speech-to-Text (STT)
 
 ### Backend
-- **Node.js** with Express
-- **MongoDB** (via Mongoose)
-- **Google Gemini AI** for intelligent explanations and chat
-- **Multer** for file uploads (product images, documents)
-
-### APIs & Services
-- Text-to-Speech (TTS) and Speech-to-Text (STT) integration points
-- Pincode and IFSC code lookup utilities
-- Real-time validation services
+- **Node.js** with **Express**
+- **MongoDB** (via Mongoose schemas)
+- **Google Gemini 2.5 Flash AI** for context explanations, translation, and interactive assistant
+- **FLUX Kontext Pro (`black-forest-labs/flux-kontext-pro` via Replicate API)** for automated on-model garment image generation
+- **Sharp** for image cropping, background removal, and quality compliance checks
+- **Multer** for file upload management
 
 ---
 
 ## 📦 Prerequisites
 
-Before running this project, ensure you have:
+Ensure you have the following installed before setting up:
 
 - **Node.js** (v18 or higher)
-- **npm** (comes with Node.js)
-- **MongoDB** (local installation or Atlas cloud account)
-- **Google Gemini API Key** (for AI-powered features)
+- **npm** (v9 or higher)
+- **Python 3.10+** (for Replicate FLUX Kontext Pro generation scripts)
+- **MongoDB** (local installation or MongoDB Atlas cloud URI)
+- **Google Gemini API Key** (for AI explanations and Mia chat)
+- **Replicate API Token** (required for FLUX Kontext Pro on-model generation)
 
 ---
 
@@ -79,74 +103,51 @@ git clone <your-repo-url>
 cd Myntra-WeForShe
 ```
 
-### 2️⃣ Setup Seller Onboarding Platform
+### 2️⃣ Setup Seller Portal
 
 #### Backend Setup
 
 ```bash
-cd everything/backend
+cd "Seller Portal/backend"
 npm install
 ```
 
-Create a `.env` file:
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your configuration:
+Create `.env` file in `Seller Portal/backend/.env`:
 
 ```env
-# Google Gemini API Key (required for AI features)
 GEMINI_API_KEY=your_gemini_api_key_here
-
-# Server port
 PORT=4000
-
-# MongoDB connection string
-# For local MongoDB:
 MONGODB_URI=mongodb://127.0.0.1:27017/bharat_onboarding
-
-# For MongoDB Atlas:
-# MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/bharat_onboarding
+REPLICATE_API_TOKEN=your_replicate_token_here
 ```
 
 #### Frontend Setup
 
 ```bash
-cd everything/frontend
+cd "Seller Portal/frontend"
 npm install
 ```
 
-### 3️⃣ Setup Customer Marketplace
+### 3️⃣ Setup Customer Side
 
 #### Backend Setup
 
 ```bash
-cd customer-side-backend
+cd "Customer Side/customer-side-backend"
 npm install
 ```
 
-Create a `.env` file:
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your configuration:
+Create `.env` file in `Customer Side/customer-side-backend/.env`:
 
 ```env
-# MongoDB connection string (same database as seller onboarding)
-MONGODB_URI=mongodb://127.0.0.1:27017/bharat_onboarding
-
-# Server port (different from seller backend)
 PORT=4001
+MONGODB_URI=mongodb://127.0.0.1:27017/bharat_onboarding
 ```
 
 #### Frontend Setup
 
 ```bash
-cd customer-side-react
+cd "Customer Side/customer-side-react"
 npm install
 ```
 
@@ -154,429 +155,135 @@ npm install
 
 ## 🎬 Running the Application
 
-You need to run **4 servers** simultaneously in separate terminal windows:
+To run the entire ecosystem, start the **4 servers** in separate terminal windows:
 
-### Terminal 1: Seller Onboarding Backend
-
+### Terminal 1: Seller Portal Backend
 ```bash
-cd everything/backend
+cd "Seller Portal/backend"
 npm run dev
 ```
-
 ✅ Runs on **http://localhost:4000**
 
-### Terminal 2: Seller Onboarding Frontend
-
+### Terminal 2: Seller Portal Frontend
 ```bash
-cd everything/frontend
+cd "Seller Portal/frontend"
 npm run dev
 ```
+✅ Runs on **http://localhost:5173** (proxies `/api/*` to port `4000`)
 
-✅ Runs on **http://localhost:5173**  
-🔗 Proxies `/api/*` requests to `http://localhost:4000`
-
-### Terminal 3: Customer Marketplace Backend
-
+### Terminal 3: Customer Side Backend
 ```bash
-cd customer-side-backend
+cd "Customer Side/customer-side-backend"
 npm run dev
 ```
-
 ✅ Runs on **http://localhost:4001**
 
-### Terminal 4: Customer Marketplace Frontend
-
+### Terminal 4: Customer Side Frontend
 ```bash
-cd customer-side-react
+cd "Customer Side/customer-side-react"
 npm run dev
 ```
-
-✅ Runs on **http://localhost:5174**  
-🔗 Connects to backend at `http://localhost:4001`
+✅ Runs on **http://localhost:5174** (proxies `/api/*` to port `4001`)
 
 ---
 
-## 🗄️ Database Setup
+## 🗄️ MongoDB Setup Guide & Test Data
 
-### Option 1: Local MongoDB
+Both applications share the same MongoDB database (`bharat_onboarding`) so that newly onboarded sellers and products seamlessly appear on the customer marketplace.
 
-1. Install MongoDB Community Edition from [mongodb.com](https://www.mongodb.com/try/download/community)
-2. Start MongoDB service:
-   ```bash
-   # macOS
-   brew services start mongodb-community
-   
-   # Linux
-   sudo systemctl start mongod
-   
-   # Windows
-   net start MongoDB
+### Setting Up MongoDB for the User
+
+You can choose either a **local MongoDB server** or a **cloud-hosted MongoDB Atlas cluster**:
+
+#### Option A: Local MongoDB Installation (Recommended for Offline Dev)
+1. **Download & Install MongoDB Community Edition**:
+   - **macOS**: `brew tap mongodb/brew && brew install mongodb-community`
+   - **Linux (Ubuntu/Debian)**: `sudo apt install -y mongodb`
+   - **Windows**: Download installer from [MongoDB Download Center](https://www.mongodb.com/try/download/community)
+2. **Start the MongoDB Service**:
+   - **macOS**: `brew services start mongodb-community`
+   - **Linux**: `sudo systemctl start mongod`
+   - **Windows**: Run `net start MongoDB` in Administrator Command Prompt
+3. **Configure Environment Variables**:
+   Set `MONGODB_URI` in both `.env` files:
+   ```env
+   MONGODB_URI=mongodb://127.0.0.1:27017/bharat_onboarding
    ```
-3. Use the local URI: `mongodb://127.0.0.1:27017/bharat_onboarding`
 
-### Option 2: MongoDB Atlas (Cloud)
+#### Option B: MongoDB Atlas (Cloud Cluster)
+1. Create a free account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
+2. Create a free `M0` cluster and create a database user (username & password).
+3. Under **Network Access**, add your current IP address (or `0.0.0.0/0` for development).
+4. Click **Connect** ➔ **Drivers** to copy your connection string.
+5. Set `MONGODB_URI` in both `.env` files:
+   ```env
+   MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/bharat_onboarding?retryWrites=true&w=majority
+   ```
 
-1. Create a free account at [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
-2. Create a new cluster
-3. Add a database user
-4. Whitelist your IP address
-5. Get your connection string and update `.env` files
+> ⚠️ **Important Note**: Ensure both `Seller Portal/backend/.env` and `Customer Side/customer-side-backend/.env` use the **exact same `MONGODB_URI`** so data stays synchronized!
 
 ### Seed Test Data (Optional)
 
-To populate the database with sample sellers and products:
+To populate the database with mock sellers, artisan stories, and sample products:
 
 ```bash
-cd everything/backend
-npm run seed:test-seller
+cd "Seller Portal/backend"
+node seed-mockdata.js
 ```
 
 ---
 
-## 📱 Application Features
+## 📡 Complete API Reference
 
-### Seller Onboarding Platform
+### Seller Portal Backend (Port 4000)
 
-#### Core Features
-- **40-question guided onboarding** flow
-- **Audio-first interface** with TTS/STT support
-- **Multilingual** (English, Tamil, Hindi)
-- **Tile-based input** for low-literacy users
-- **AI-powered help** using Google Gemini
-- **Document upload** (GST, bank cheque, trademark)
-- **Real-time validation** (phone, GST, IFSC)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/validate` | `POST` | Validates input format for `phone`, `gstin`, `ifsc`, `password` |
+| `/api/explain` | `POST` | Fetches Gemini AI-powered field explanations in `en`, `hi`, or `ta` |
+| `/api/chat` | `POST` | Real-time interactive chat assistance via Mia AI assistant |
+| `/api/lookup/pincode/:pincode` | `GET` | Resolves city, state, and country from a 6-digit pincode |
+| `/api/lookup/ifsc/:code` | `GET` | Resolves bank name and branch from an 11-character IFSC code |
+| `/api/seller/submit` | `POST` | Submits complete 40-question seller onboarding profile |
+| `/api/seller/:id` | `GET` / `PATCH` | Retrieves or updates seller profile |
+| `/api/seller/story` | `POST` / `GET` | Creates or fetches an artisan's "My Craft Journey" story |
+| `/api/products` | `POST` | Uploads product flat-lays, triggers FLUX Kontext Pro on-model generation via Replicate, runs e-commerce compliance checks, and creates catalog entry |
+| `/api/products/:id` | `GET` | Retrieves product catalog details |
+| `/api/products/seller/:sellerId` | `GET` | Retrieves all products listed by a seller |
+| `/api/mai/sellers` | `GET` | Formats database sellers into Made Across India map schema |
 
-#### Key Onboarding Sections
-1. **Registration** — Phone, email, GST verification
-2. **Basic Information** — Contact details, entity type
-3. **Business Details** — OMS choice, operational readiness
-4. **Warehouse** — Location, capacity, pickup hours
-5. **Bank Details** — Account information with validation
-6. **Brand Details** — Brand name, USP, pricing, eco-tags
-7. **Category & Sizing** — Product types and catalog setup
-8. **Online Presence** — Existing marketplace listings
-9. **APOB** — Article purchase order book requirements
+### Customer Side Backend (Port 4001)
 
-#### API Endpoints
-
-**Validation:**
-- `POST /api/validate` — Validate phone, GST, IFSC, password
-
-**AI Explanations:**
-- `POST /api/explain` — Get Gemini-powered explanations in any language
-- `POST /api/chat` — Interactive chat for field-specific help
-
-**Lookups:**
-- `GET /api/lookup/pincode/:pincode` — Get city/state from pincode
-- `GET /api/lookup/ifsc/:code` — Get bank details from IFSC
-
-**Seller Management:**
-- `POST /api/seller/submit` — Submit seller onboarding data
-- `GET /api/seller/:id` — Retrieve seller profile
-- `PATCH /api/seller/:id` — Update seller information
-
-**Product Management:**
-- `POST /api/products` — Create product with image upload
-- `GET /api/products/:id` — Get product details
-- `GET /api/products/seller/:sellerId` — List all products for a seller
-
-### Customer Marketplace
-
-#### Core Features
-- **State-based browsing** — Sellers organized by Indian state
-- **Accordion interface** — Expandable state sections
-- **Search functionality** — Find brands, crafts, states
-- **Seller storefronts** — Dedicated pages for each artisan
-- **Product catalogs** — Browse products with images
-- **Brand storytelling** — USP and founder information
-
-#### API Endpoints
-
-**Customer APIs:**
-- `GET /api/customer/sellers-grouped` — Get all sellers grouped by state
-- `GET /api/customer/sellers/:sellerId` — Get seller profile
-- `GET /api/customer/sellers/:sellerId/products` — Get products for a seller
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/health` | `GET` | Health check endpoint returning server and DB status |
+| `/api/customer/sellers-grouped` | `GET` | Returns approved sellers grouped by state for accordions |
+| `/api/customer/sellers/:sellerId` | `GET` | Returns individual seller profile details |
+| `/api/customer/sellers/:sellerId/products` | `GET` | Returns all products listed by a specific seller |
+| `/api/customer/products/:productId` | `GET` | Returns single product details along with seller profile metadata |
+| `/api/customer/sellers/:sellerId/story` | `GET` | Returns artisan craft journey story and photo gallery |
+| `/uploads/*` | `GET` | Serves product images statically from `../../Seller Portal/backend/uploads` |
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing & Verification
 
-### Test Values for Seller Onboarding
-
-#### Valid Phone Numbers
-Any 10-digit number starting with 6–9:
-- `9876543210`
-- `8765432109`
-
-#### Valid GST Numbers
-- `29ABCDE1234F1Z5` (Karnataka)
-- Any 15-character code matching format: `^[0-3][0-9][A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$`
-
-#### Valid IFSC Codes
-| Code | Bank | Branch |
-|------|------|--------|
-| `SBIN0001234` | State Bank of India | MG Road Bengaluru |
-| `HDFC0000001` | HDFC Bank | Fort Mumbai |
-| `ICIC0000001` | ICICI Bank | Bandra Mumbai |
-| `KKBK0000001` | Kotak Mahindra Bank | Chennai Branch |
-| `PUNB0001000` | Punjab National Bank | Connaught Place New Delhi |
-
-#### Pincode Lookups
-| Pincode | City | State |
-|---------|------|-------|
-| `560001` | Bengaluru | Karnataka |
-| `400001` | Mumbai | Maharashtra |
-| `110001` | New Delhi | Delhi |
-| `600001` | Chennai | Tamil Nadu |
-| `500001` | Hyderabad | Telangana |
-| `302001` | Jaipur | Rajasthan |
-
----
-
-## 🎨 Project Structure Details
-
-### Seller Onboarding (`everything/`)
-
-```
-everything/
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── QuestionScreen.jsx      # Generic question renderer
-│   │   │   └── inputs/                  # All input types (tiles, voice, etc.)
-│   │   ├── data/
-│   │   │   └── manifest.sample.json     # 40-question onboarding manifest
-│   │   ├── api/
-│   │   │   ├── sttProvider.js           # Speech-to-text
-│   │   │   └── ttsProvider.js           # Text-to-speech
-│   │   └── App.jsx                      # Main routing
-│   └── package.json
-│
-└── backend/
-    ├── src/
-    │   ├── models/
-    │   │   ├── Seller.js                # Comprehensive seller schema
-    │   │   └── Product.js               # Product catalog schema
-    │   ├── routes/
-    │   │   ├── validate.js              # Input validation
-    │   │   ├── explain.js               # Gemini explanations
-    │   │   ├── chat.js                  # AI chat support
-    │   │   ├── seller.js                # Seller CRUD
-    │   │   └── products.js              # Product CRUD
-    │   ├── docs/
-    │   │   └── content/field/           # Field-specific help docs
-    │   ├── validators/                  # Validation logic
-    │   └── server.js                    # Main server
-    └── package.json
+### Test Compliance Service
+To test e-commerce image compliance checks on stock model images:
+```bash
+cd "Seller Portal/backend"
+node test-catalog-service.js
 ```
 
-### Customer Marketplace
-
-```
-customer-side-react/
-├── src/
-│   ├── components/
-│   │   ├── Navbar.jsx                   # Navigation header
-│   │   ├── StateAccordion.jsx           # State-based grouping
-│   │   ├── SellerCard.jsx               # Seller preview cards
-│   │   └── ProductCard.jsx              # Product display cards
-│   ├── pages/
-│   │   ├── HomePage.jsx                 # Browse all sellers
-│   │   └── StorefrontPage.jsx           # Individual seller storefront
-│   ├── api/
-│   │   └── client.js                    # API client
-│   └── App.jsx
-└── package.json
-
-customer-side-backend/
-├── models/
-│   ├── Seller.js                        # Seller model (customer view)
-│   └── Product.js                       # Product model
-├── routes/
-│   └── customer.js                      # Customer-facing APIs
-├── utils/
-│   └── pincodeToState.js                # Pincode utility
-└── server.js
-```
+### Valid Testing Inputs for Onboarding
+- **Phone Number:** Any 10-digit number starting with 6–9 (e.g. `9876543210`)
+- **GSTIN:** `29ABCDE1234F1Z5` or any 15-character valid GST pattern
+- **IFSC Codes:** `SBIN0001234` (SBI), `HDFC0000001` (HDFC), `ICIC0000001` (ICICI)
+- **Pincodes:** `560001` (Bengaluru), `400001` (Mumbai), `110001` (New Delhi), `600001` (Chennai)
 
 ---
 
-## 🔧 Configuration Notes
+## 👥 Acknowledgments & License
 
-### Shared MongoDB Database
-
-Both applications share the same MongoDB database (`bharat_onboarding`) to ensure:
-- Sellers onboarded through the seller platform appear in the customer marketplace
-- Product catalogs are synchronized
-- Real-time updates across both systems
-
-### Port Configuration
-
-- **Seller Backend:** Port 4000
-- **Customer Backend:** Port 4001  
-- **Seller Frontend:** Port 5173 (Vite default)
-- **Customer Frontend:** Port 5174 (Vite auto-increments)
-
-### API Proxying
-
-Both frontends use Vite's proxy configuration to forward API requests to their respective backends, avoiding CORS issues during development.
-
----
-
-## 🌐 Multilingual Support
-
-The seller onboarding platform supports:
-- **English (en)** — Default
-- **Tamil (ta)** — For Tamil Nadu artisans
-- **Hindi (hi)** — For Hindi-speaking regions
-
-Language can be switched from the header at any time. All help docs, explanations, and audio prompts adapt to the selected language using Google Gemini AI.
-
----
-
-## 🤖 AI Features
-
-### Google Gemini Integration
-
-The seller onboarding platform uses Gemini 2.0 Flash for:
-
-1. **Field Explanations** — Context-aware help for complex fields (GST, IFSC, APOB)
-2. **Interactive Chat** — Answer seller questions in real-time
-3. **Multilingual Translation** — Dynamically translate content to Tamil/Hindi
-4. **Voice Input Processing** — Interpret voice responses for open-ended fields
-
-### Configuring Gemini
-
-1. Get an API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Add to `everything/backend/.env`:
-   ```env
-   GEMINI_API_KEY=your_actual_api_key_here
-   ```
-
----
-
-## 📸 File Uploads
-
-The seller onboarding backend supports file uploads for:
-- Product images (via `/api/products`)
-- GST certificate
-- Bank cheque copy
-- Trademark proof
-- Digital signature
-
-Uploaded files are stored in `everything/backend/uploads/` and served statically via `/uploads/*`.
-
----
-
-## 🐛 Troubleshooting
-
-### Backend won't start
-
-**Error:** `MongoDB connection failed`
-
-**Solution:** 
-- Check MongoDB is running: `brew services list` (macOS) or `sudo systemctl status mongod` (Linux)
-- Verify `MONGODB_URI` in `.env` files
-- For Atlas, check your IP is whitelisted
-
-### Frontend can't connect to backend
-
-**Error:** `Failed to fetch` or `CORS error`
-
-**Solution:**
-- Ensure backend is running on the correct port
-- Check Vite proxy configuration in `vite.config.js`
-- Verify `cors()` middleware is enabled in backend
-
-### Gemini API errors
-
-**Error:** `GEMINI_API_KEY not found` or `401 Unauthorized`
-
-**Solution:**
-- Verify API key in `everything/backend/.env`
-- Check key validity at [Google AI Studio](https://makersuite.google.com/)
-- Ensure no spaces or quotes around the key
-
-### Port already in use
-
-**Error:** `EADDRINUSE: address already in use :::4000`
-
-**Solution:**
-- Kill the process: `lsof -ti:4000 | xargs kill` (macOS/Linux)
-- Or change the port in `.env`: `PORT=4002`
-
----
-
-## 🎯 Key Use Cases
-
-### For Artisan Sellers
-1. Complete multilingual onboarding in 20-30 minutes
-2. Get AI-powered help for complex business questions
-3. Upload product catalog with images
-4. Manage brand profile and warehouse details
-
-### For Customers
-1. Discover women-led artisan brands by state
-2. Learn about traditional Indian crafts
-3. Support local artisans directly
-4. Browse product catalogs with authentic stories
-
----
-
-## 📚 Additional Resources
-
-### API Documentation
-
-Detailed API documentation is available in:
-- `everything/README.md` — Seller onboarding APIs
-- Backend route files for inline documentation
-
-### Manifest Customization
-
-To add new onboarding questions:
-1. Edit `everything/frontend/src/data/manifest.sample.json`
-2. Add validation logic to `everything/backend/src/validators/`
-3. Add help docs to `everything/backend/src/docs/content/field/`
-
-No component code changes required — the UI is fully manifest-driven!
-
----
-
-## 👥 Contributing
-
-This is a hackathon prototype. Future enhancements could include:
-- Payment gateway integration
-- Order management system
-- Real-time inventory tracking
-- Customer reviews and ratings
-- WhatsApp/SMS notifications
-- Multilingual customer marketplace
-- Analytics dashboard for sellers
-
----
-
-## 📄 License
-
-This project was built for the Myntra WeForShe Hackathon.
-
----
-
-## 🙏 Acknowledgments
-
-- **Myntra** for the WeForShe initiative
-- **Google Gemini AI** for multilingual support
-- **MongoDB** for database infrastructure
-- All the women artisans who inspire this platform
-
----
-
-## 📞 Support
-
-For issues or questions:
-1. Check the troubleshooting section above
-2. Review the existing README files in subdirectories
-3. Examine the API endpoint documentation in route files
-
----
-
-**Built with ❤️ to empower women artisans across India**
+- Built for the **Myntra WeForShe Hackathon** by **Team Frootloops**.
+- Powered by **Google Gemini AI**, **Replicate AI (FLUX Kontext Pro)**, **React 19**, **Vite**, **Express**, and **MongoDB**.

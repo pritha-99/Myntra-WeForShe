@@ -22,9 +22,9 @@ app.use(cors());
 app.use(express.json());
 
 // ── Serve product images uploaded by the main backend ──────────────────────
-// Images stored in everything/backend/uploads/ are served as /uploads/* here
+// Images stored in Seller Portal/backend/uploads/ are served as /uploads/* here
 // so customers can see product photos without cross-origin issues.
-const uploadsPath = path.join(__dirname, '../everything/backend/uploads');
+const uploadsPath = path.join(__dirname, '../../Seller Portal/backend/uploads');
 app.use('/uploads', express.static(uploadsPath));
 
 // ── Routes ──────────────────────────────────────────────────────────────────

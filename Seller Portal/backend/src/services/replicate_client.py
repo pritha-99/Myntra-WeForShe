@@ -1,6 +1,5 @@
 """
 Replicate FLUX Kontext Pro client for Myntra garment catalog generation.
-Replaces the previous CatVTON HuggingFace integration.
 
 Usage:
     python3 replicate_client.py --garment <path> --output <path> [--pose front|back]
