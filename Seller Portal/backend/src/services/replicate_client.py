@@ -20,11 +20,30 @@ import urllib.error
 
 MODEL_VERSION = "black-forest-labs/flux-kontext-pro"
 
-PROMPT = (
-    "The input image contains a garment. Generate a photorealistic full-body fashion "
-    "model wearing the exact garment shown in the input image. Preserve every design "
-    "detail including color, graphics, logos, prints, stitching, seams, neckline, "
-    "sleeve length, cuffs, fabric texture, material, fit, and proportions exactly. "
+PROMPT_FRONT = (
+    "The input image contains a FRONT flat-lay view of a garment. Generate a photorealistic "
+    "full-body fashion model photographed from the FRONT, wearing the exact garment shown in "
+    "the input image. The model must face the camera directly showing the FRONT of the garment. "
+    "Preserve every design detail including color, graphics, logos, prints, stitching, seams, "
+    "neckline, sleeve length, cuffs, fabric texture, material, fit, and proportions exactly. "
+    "CRITICAL: Maintain the exact sleeve length as shown in the input image - short sleeves "
+    "must remain short sleeves, full sleeves must remain full sleeves, sleeveless must remain "
+    "sleeveless. Do not modify or extend sleeve lengths under any circumstances. "
+    "Do not modify or invent any garment details. Create a professional fashion model "
+    "with a natural pose, studio lighting, and a light gray background with a soft shadow suitable for "
+    "an e-commerce fashion catalog. Ensure realistic fabric drape, folds, wrinkles, "
+    "and shadows while keeping the garment identical to the input."
+)
+
+PROMPT_BACK = (
+    "The input image contains a BACK flat-lay view of a garment. Generate a photorealistic "
+    "full-body fashion model photographed from the BACK, wearing the exact garment shown in "
+    "the input image. The model must face away from the camera showing the BACK of the garment. "
+    "Preserve every design detail including color, graphics, logos, prints, stitching, seams, "
+    "neckline, sleeve length, cuffs, fabric texture, material, fit, and proportions exactly. "
+    "CRITICAL: Maintain the exact sleeve length as shown in the input image - short sleeves "
+    "must remain short sleeves, full sleeves must remain full sleeves, sleeveless must remain "
+    "sleeveless. Do not modify or extend sleeve lengths under any circumstances. "
     "Do not modify or invent any garment details. Create a professional fashion model "
     "with a natural pose, studio lighting, and a light gray background with a soft shadow suitable for "
     "an e-commerce fashion catalog. Ensure realistic fabric drape, folds, wrinkles, "
@@ -133,7 +152,7 @@ def generate_on_model(garment_path, output_path, pose="front"):
     Args:
         garment_path: Path to the flat-lay garment image (local file).
         output_path:  Where to write the generated PNG/JPEG.
-        pose:         "front" or "back" — informational, affects prompt suffix.
+        pose:         "front" or "back" — determines which prompt to use.
 
     Returns:
         dict: {"status": "success", "output_path": output_path}
@@ -141,8 +160,13 @@ def generate_on_model(garment_path, output_path, pose="front"):
     Raises:
         RuntimeError on non-retryable failures.
     """
-    pose_hint = "Show the front of the garment." if pose == "front" else "Show the back of the garment."
-    full_prompt = f"{PROMPT} {pose_hint}"
+    # Use different prompts for front vs back
+    if pose == "front":
+        full_prompt = PROMPT_FRONT
+    elif pose == "back":
+        full_prompt = PROMPT_BACK
+    else:
+        raise ValueError(f"Invalid pose: {pose}. Must be 'front' or 'back'.")
 
     garment_uri = _image_to_data_uri(garment_path)
 

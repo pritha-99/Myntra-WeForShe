@@ -168,8 +168,11 @@ export default function ProductListingPage() {
     if (!category) errs.category = 'Please select a category.';
     if (!quantity || isNaN(Number(quantity)) || !Number.isInteger(Number(quantity)) || Number(quantity) < 0)
       errs.quantity = 'Enter a valid whole-number quantity.';
-    if (!frontImage) errs.frontImage = 'Front flat-lay photo is required.';
-    if (!backImage) errs.backImage = 'Back flat-lay photo is required.';
+    
+    // Only validate images if NOT in AI generation mode
+    if (frontImageMode !== 'ai' && !frontImage) errs.frontImage = 'Front flat-lay photo is required.';
+    if (backImageMode !== 'ai' && !backImage) errs.backImage = 'Back flat-lay photo is required.';
+    
     if (additionalImages.length > 5) errs.additionalImages = 'Maximum 5 additional images allowed.';
     return errs;
   }

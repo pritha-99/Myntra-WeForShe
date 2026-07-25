@@ -23,7 +23,7 @@ function HeroBanner({ totalSellers, viewMode, onViewModeChange }) {
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight mb-3 tracking-tight">
               Handcrafted Heritage by{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff3f6c] to-[#ff905a]">
-                Women Artisans
+                Artisans
               </span>
             </h1>
 

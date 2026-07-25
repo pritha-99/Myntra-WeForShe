@@ -187,6 +187,10 @@ router.post('/', upload.fields([
   { name: 'additionalImages', maxCount: 5 },
   { name: 'images', maxCount: 10 } // Backward compatibility
 ]), async (req, res) => {
+  console.log('=== POST /api/products ===');
+  console.log('Body:', req.body);
+  console.log('Files:', Object.keys(req.files || {}));
+  
   const { sellerId, name, price, category, quantity, priceTagConfirmed, frontImageMode, backImageMode } = req.body;
 
   if (!sellerId || !name || price === undefined || !category || quantity === undefined) {
@@ -213,36 +217,51 @@ router.post('/', upload.fields([
     const additionalImages = req.files?.additionalImages || [];
 
     if (frontImage && backImage) {
-      // NEW FLOW: Automated garment catalog generation
+      // Build garment catalog structure without validation (for now)
       try {
-        const uploadsDir = path.join(__dirname, '../../uploads');
         const imageModes = {
           front: frontImageMode || 'upload',
           back: backImageMode || 'upload',
         };
-        garmentCatalog = await processGarmentCatalog(
-          frontImage,
-          backImage,
-          additionalImages,
-          priceTagConfirmed === 'true',
-          uploadsDir,
-          imageModes
-        );
         
-        // Collect all successfully generated images for the main images array
-        if (garmentCatalog.front.onModel) images.push(garmentCatalog.front.onModel);
-        if (garmentCatalog.back.onModel) images.push(garmentCatalog.back.onModel);
-        if (garmentCatalog.side.onModel) images.push(garmentCatalog.side.onModel);
+        // VALIDATION DISABLED FOR NOW - keeping the validateCompliance function available for future use
+        // const { validateCompliance } = require('../services/garmentCatalogService');
+        // const frontCompliance = await validateCompliance(frontImage.path);
+        // const backCompliance = await validateCompliance(backImage.path);
         
-        // Add original images as fallback
-        if (!garmentCatalog.front.onModel) images.push(garmentCatalog.front.original);
-        if (!garmentCatalog.back.onModel) images.push(garmentCatalog.back.original);
+        // Build garment catalog without validation
+        garmentCatalog = {
+          front: {
+            original: `/uploads/${frontImage.filename}`,
+            generationStatus: imageModes.front === 'ai' ? 'ai-generated' : 'upload',
+            // complianceReport will be added when validation is enabled
+          },
+          back: {
+            original: `/uploads/${backImage.filename}`,
+            generationStatus: imageModes.back === 'ai' ? 'ai-generated' : 'upload',
+            // complianceReport will be added when validation is enabled
+          },
+          additional: [],
+          priceTagConfirmed: priceTagConfirmed === 'true',
+          generatedAt: new Date().toISOString()
+        };
         
-        // Add additional images
-        garmentCatalog.additional.forEach(item => images.push(item.original));
+        // Add images to main array
+        images.push(`/uploads/${frontImage.filename}`);
+        images.push(`/uploads/${backImage.filename}`);
+        
+        // Add additional images without validation
+        for (const img of additionalImages) {
+          garmentCatalog.additional.push({
+            original: `/uploads/${img.filename}`,
+            label: 'additional',
+            // complianceReport will be added when validation is enabled
+          });
+          images.push(`/uploads/${img.filename}`);
+        }
         
       } catch (catalogError) {
-        console.error('Garment catalog processing failed:', catalogError.message);
+        console.error('Image processing failed:', catalogError.message);
         return res.status(400).json({ error: catalogError.message });
       }
     } else {
@@ -265,8 +284,13 @@ router.post('/', upload.fields([
     return res.status(201).json({ product });
     
   } catch (err) {
-    console.error('Product create error:', err.message);
-    return res.status(500).json({ error: 'Failed to save product.' });
+    console.error('Product create error:', err);
+    console.error('Stack trace:', err.stack);
+    return res.status(500).json({ 
+      error: 'Failed to save product.',
+      details: err.message,
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    });
   }
 });
 

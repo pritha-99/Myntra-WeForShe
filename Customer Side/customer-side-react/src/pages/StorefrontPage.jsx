@@ -164,13 +164,6 @@ export default function StorefrontPage() {
                       {seller.brandName}
                     </h1>
                     <p className="text-[#94969f] text-xs font-semibold mb-2">by {seller.founderName}</p>
-                    
-                    {/* Rating Badge */}
-                    <div className="inline-flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-xs text-xs font-bold text-white border border-white/15">
-                      <span>4.8</span>
-                      <span className="text-[#03a685]">★</span>
-                      <span className="text-[#94969f] font-normal text-[11px]">| 1.2k Ratings</span>
-                    </div>
                   </div>
                 </div>
 

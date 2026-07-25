@@ -17,8 +17,6 @@ export default function ProductCard({ product }) {
   // Use relative URL — /uploads/* is proxied through Vite to the main backend (localhost:4000)
   const imgSrc = hasImage ? product.images[0] : null;
   const price = product.price || 0;
-  const originalPrice = Math.round(price * 1.35); // Simulated original price for discount display
-  const discountPercent = 35;
 
   const handleCardClick = () => {
     if (product._id) {
@@ -66,13 +64,6 @@ export default function ProductCard({ product }) {
             </svg>
           </button>
 
-          {/* Rating Pill (Matching Myntra badge style) */}
-          <div className="absolute bottom-2.5 left-2.5 bg-white/90 backdrop-blur-xs px-2 py-0.5 rounded-xs border border-[#eaeaec] flex items-center gap-1 text-[11px] font-bold text-[#282c3f]">
-            <span>4.3</span>
-            <span className="text-[#03a685]">★</span>
-            <span className="text-[#7e818c] font-medium text-[10px]">| 621</span>
-          </div>
-
           {/* Stock badge */}
           {product.quantity <= 5 && product.quantity > 0 && (
             <div className="absolute top-3 left-3 bg-[#ff3f6c] text-white text-[10px] font-bold px-2 py-0.5 rounded-xs uppercase tracking-wider">
@@ -104,12 +95,6 @@ export default function ProductCard({ product }) {
           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
             <span className="text-sm font-bold text-[#282c3f]">
               ₹{price.toLocaleString('en-IN')}
-            </span>
-            <span className="text-xs text-[#7e818c] line-through">
-              ₹{originalPrice.toLocaleString('en-IN')}
-            </span>
-            <span className="text-[11px] font-bold text-[#ff905a]">
-              ({discountPercent}% OFF)
             </span>
           </div>
         </div>

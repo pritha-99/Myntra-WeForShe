@@ -107,8 +107,6 @@ export default function ProductDetailPage() {
 
   const brandName = seller?.brandName || product.category || 'MYNTRA MADE ACROSS INDIA';
   const price = product.price || 0;
-  const mrp = Math.round(price * 3.34); // Match ~70% discount matching screenshot
-  const discountPercent = Math.round(((mrp - price) / mrp) * 100);
 
   const handlePincodeCheck = (e) => {
     e.preventDefault();
@@ -198,15 +196,6 @@ export default function ProductDetailPage() {
               </p>
             </div>
 
-            {/* Rating Pill */}
-            <div className="inline-flex items-center gap-1.5 bg-white border border-[#eaeaec] px-2.5 py-1 rounded-xs text-xs font-bold text-[#282c3f]">
-              <span className="flex items-center gap-0.5">
-                4.3 <span className="text-[#03a685] text-sm">★</span>
-              </span>
-              <span className="text-[#7e818c]">|</span>
-              <span className="text-[#7e818c] font-normal">3.1k Ratings</span>
-            </div>
-
             <hr className="border-[#eaeaec]" />
 
             {/* Price Section */}
@@ -214,12 +203,6 @@ export default function ProductDetailPage() {
               <div className="flex items-baseline gap-3">
                 <span className="text-2xl font-bold text-[#282c3f]">
                   ₹{price.toLocaleString('en-IN')}
-                </span>
-                <span className="text-base text-[#7e818c] line-through font-normal">
-                  MRP ₹{mrp.toLocaleString('en-IN')}
-                </span>
-                <span className="text-base font-bold text-[#ff905a]">
-                  ({discountPercent}% OFF)
                 </span>
               </div>
               <p className="text-xs font-bold text-[#03a685]">
