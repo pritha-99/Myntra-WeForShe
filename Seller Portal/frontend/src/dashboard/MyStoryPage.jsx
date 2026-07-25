@@ -6,7 +6,7 @@ export default function MyStoryPage() {
   const { t } = useOutletContext ? useOutletContext() : { t: (k) => k };
 
   const sessionData = getState();
-  const storedSellerId = getSellerId();
+  const storedSellerId = localStorage.getItem('sellerId') || getSellerId();
   const gstin = sessionData.answers?.gstin || '';
   const sellerId = storedSellerId || 'SLR-DEMO01';
 
@@ -109,7 +109,7 @@ export default function MyStoryPage() {
     <div style={{ maxWidth: 860, margin: '0 auto', padding: '32px 24px' }}>
       
       {/* Header */}
-      <div style={{ marginBottom: 28, borderBottom: '1px solid var(--myntra-border, #eaeaec)', paddingBottom: 20 }}>
+      <div style={{ marginBottom: 20, borderBottom: '1px solid var(--myntra-border, #eaeaec)', paddingBottom: 16 }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '4px 12px', borderRadius: 20, background: 'rgba(255, 63, 108, 0.1)', color: '#ff3f6c', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>
           📖 Made Across India Feature
         </div>
@@ -119,6 +119,33 @@ export default function MyStoryPage() {
         <p style={{ fontSize: '0.9rem', color: 'var(--myntra-muted, #7e818c)', lineHeight: 1.5 }}>
           Share your artisan origin, regional craft heritage, and weaving traditions. Your story images and description will be showcased to customers when they discover your brand.
         </p>
+      </div>
+
+      {/* Seller ID Info Box */}
+      <div style={{
+        padding: '12px 16px',
+        borderRadius: 8,
+        marginBottom: 20,
+        background: sellerId === 'SLR-DEMO01' ? 'rgba(255, 63, 108, 0.08)' : 'rgba(3, 166, 133, 0.08)',
+        border: `1px solid ${sellerId === 'SLR-DEMO01' ? '#ff3f6c' : '#03a685'}`,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        fontSize: '0.85rem',
+      }}>
+        <span style={{ fontSize: 18 }}>{sellerId === 'SLR-DEMO01' ? '⚠️' : '🆔'}</span>
+        <div>
+          {sellerId === 'SLR-DEMO01' ? (
+            <span style={{ color: '#d32f2f', fontWeight: 700 }}>
+              You are not logged in — story will be saved under demo ID <code>SLR-DEMO01</code>. Please log in to save your real story.
+            </span>
+          ) : (
+            <span style={{ color: '#282c3f' }}>
+              Your Seller ID: <strong style={{ color: '#03a685', fontFamily: 'monospace', fontSize: '0.9rem' }}>{sellerId}</strong>
+              <span style={{ color: '#7e818c', marginLeft: 8 }}>— Customers will see your story at <code>/storefront/{sellerId}</code></span>
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Alert Status Banner */}

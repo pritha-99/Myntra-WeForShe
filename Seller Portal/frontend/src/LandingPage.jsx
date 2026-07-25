@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginSeller } from './api/client';
+import { setSellerId } from './state/sessionStore';
 import MyntraLogo from './components/MyntraLogo';
 
 /* ─────────────────────────────────────────────────────────────────
@@ -43,6 +44,7 @@ export default function LandingPage() {
     try {
       const seller = await loginSeller(email.trim(), password);
       // Persist session
+      setSellerId(seller.sellerId);
       localStorage.setItem('sellerId', seller.sellerId);
       localStorage.setItem('sellerName', seller.brandName || seller.companyName || 'Seller');
       localStorage.setItem('sellerEmail', seller.email || '');

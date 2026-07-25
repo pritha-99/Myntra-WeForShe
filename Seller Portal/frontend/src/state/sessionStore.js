@@ -107,15 +107,17 @@ const SELLER_ID_KEY = 'bharat_seller_id';
 
 /** Returns the sellerId stored after successful onboarding submission. */
 export function getSellerId() {
-  return localStorage.getItem(SELLER_ID_KEY) || null;
+  return localStorage.getItem('sellerId') || localStorage.getItem(SELLER_ID_KEY) || null;
 }
 
-/** Persists the sellerId returned by /api/seller/submit. */
+/** Persists the sellerId returned by /api/seller/submit or login. */
 export function setSellerId(id) {
   localStorage.setItem(SELLER_ID_KEY, id);
+  localStorage.setItem('sellerId', id);
 }
 
 /** Clears the stored sellerId (useful for testing). */
 export function clearSellerId() {
   localStorage.removeItem(SELLER_ID_KEY);
+  localStorage.removeItem('sellerId');
 }

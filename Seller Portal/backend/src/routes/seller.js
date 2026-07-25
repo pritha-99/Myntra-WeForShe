@@ -240,7 +240,7 @@ router.post('/story', async (req, res) => {
     }
 
     const story = await Story.findOneAndUpdate(
-      { $or: [{ sellerId }, { gstin: gstin || sellerId }] },
+      { sellerId },
       {
         sellerId,
         gstin: gstin || sellerId,
